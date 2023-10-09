@@ -1,5 +1,5 @@
 import express from 'express';
-import { predictFires } from './firePrediction.js';
+import { predictFires } from './fire-prediction.js';
 import { convertMunCodeToName, convertStrToDate } from './utils.js';
 
 const app = express();

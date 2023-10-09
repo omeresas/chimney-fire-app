@@ -1,5 +1,7 @@
-import { calculateSpatialTerms } from './services/spatialTerm.js';
-import { calculateTemporalTerms } from './services/temporalTerm.js';
+import {
+  calculateSpatialTerms,
+  calculateTemporalTerms,
+} from './services/term-calculator-service.js';
 import { thetaValues, windChillArr, windSpeedArr } from './data/index.js';
 
 export async function predictFires(municipalityName, date) {
@@ -9,21 +11,8 @@ export async function predictFires(municipalityName, date) {
     windChillArr,
     windSpeedArr,
   });
-  const spatialTerms = await calculateSpatialTerms(
-    'r/r-script/municipality.R',
-    municipalityName
-  );
-
+  const spatialTerms = await calculateSpatialTerms(municipalityName);
   const expectedFires = multiplyTerms(spatialTerms, temporalTerms);
-
-  console.log('Spatial Terms:');
-  console.log(spatialTerms);
-  console.log('Temporal Terms:');
-  console.log(temporalTerms);
-  console.log(
-    `Expected Chimney Fires in ${municipalityName}: ${expectedFires}`
-  );
-
   return expectedFires;
 }
 

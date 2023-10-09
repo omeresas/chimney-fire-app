@@ -1,9 +1,27 @@
+import { executeRScript, getDayOfYear } from '../utils.js';
+import PATHS from '../paths.js';
+
 const houseTypeFunctions = {
   houseType1: temporalTerm_houseType1,
   houseType2: temporalTerm_houseType2,
   houseType3: temporalTerm_houseType3,
   houseType4: temporalTerm_houseType4,
 };
+
+export async function calculateSpatialTerms(municipalityName) {
+  try {
+    const output = await executeRScript(
+      PATHS.MUNICIPALITY_SCRIPT,
+      municipalityName
+    );
+    return output.split(',').reduce(function (obj, value, index) {
+      obj[`houseType${index + 1}`] = parseFloat(value.trim());
+      return obj;
+    }, {});
+  } catch (error) {
+    throw new Error('Failed to calculate spatial terms');
+  }
+}
 
 export function calculateTemporalTerms({
   date,
@@ -106,16 +124,4 @@ function temporalTerm_houseType4({
       theta[12] * windChill * windSpeed
   );
   return result;
-}
-
-function getDayOfYear(date) {
-  const timestamp1 = Date.UTC(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate()
-  );
-  const timestamp2 = Date.UTC(date.getFullYear(), 0, 0);
-  const differenceInMilliseconds = timestamp1 - timestamp2;
-  const differenceInDays = differenceInMilliseconds / 1000 / 60 / 60 / 24;
-  return differenceInDays;
 }
