@@ -1,17 +1,17 @@
 import {
   calculateSpatialTerms,
   calculateTemporalTerms,
-} from './services/term-calculator-service.js';
-import { thetaValues, windChillArr, windSpeedArr } from './data/index.js';
+} from './term-calculator-service.js';
+import { thetaValues, windChillArr, windSpeedArr } from '../data/index.js';
 
-export async function predictFires(municipalityName, date) {
+export async function predictFires(muniName, date) {
   const temporalTerms = calculateTemporalTerms({
     date,
     thetaValues,
     windChillArr,
     windSpeedArr,
   });
-  const spatialTerms = await calculateSpatialTerms(municipalityName);
+  const spatialTerms = await calculateSpatialTerms(muniName);
   const expectedFires = multiplyTerms(spatialTerms, temporalTerms);
   return expectedFires;
 }

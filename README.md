@@ -13,27 +13,47 @@ The final prediction is computed by multiplying the spatial and temporal predict
 
 ## API Endpoint
 
-### `POST /getFirePrediction`
+### `GET /api/fire-prediction`
 
-#### Request Body
+#### Query Parameters
 
-```json
-{
-  "municipalityCode": "string",
-  "date": "string (YYYY-MM-DD)"
-}
+- `muniCode`: A string representing the municipality code.
+- `date`: A string representing the date in the "YYYY-MM-DD" format.
+
+Example query:
+
+```
+/api/fire-prediction?muniCode=GM0153&date=2023-01-01
 ```
 
 #### Response
 
 ```json
 {
-  "municipalityCode": "string",
-  "municipalityName": "string",
+  "muniCode": "string",
+  "muniName": "string",
   "predictedFires": "number"
 }
 ```
 
 #### Description
 
-Given a `municipalityCode` and a `date`, returns the predicted number of chimney fires in the specified municipality on the specified date. Utilizes both spatial and temporal models for the prediction.
+Given a `muniCode` and a `date` as query parameters, the API returns the predicted number of chimney fires in the specified municipality on the specified date. It utilizes both spatial and temporal models for the prediction.
+
+### Example Usage
+
+Assuming the API server is running locally on port 3000:
+
+```plaintext
+curl -G http://localhost:3000/api/fire-prediction --data-urlencode "muniCode=GM0153" --data-urlencode "date=2023-01-01"
+```
+
+#### Example Output
+
+```json
+{
+  "muniCode": "GM0153",
+  "muniName": "Enschede",
+  "predictedFires": 0.11390911777445555
+}
+```

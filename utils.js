@@ -13,13 +13,13 @@ export async function readJson(path) {
 }
 
 export function convertMunCodeToName(code) {
-  const municipalityName = municipalityCodes[code];
+  const muniName = municipalityCodes[code];
 
-  if (!municipalityName) {
+  if (!muniName) {
     throw new Error('Invalid municipality code');
   }
 
-  return municipalityName;
+  return muniName;
 }
 
 export function convertStrToDate(dateStr) {

@@ -1,35 +1,29 @@
+import createError from 'http-errors';
 import express from 'express';
-import { predictFires } from './fire-prediction.js';
-import { convertMunCodeToName, convertStrToDate } from './utils.js';
+import logger from 'morgan';
+import apiRouter from './routes/api-router.js';
 
 const app = express();
-const port = 3000;
 
+app.use(logger('dev'));
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
-app.post('/getFirePrediction', async (req, res) => {
-  try {
-    const { municipalityCode, date: dateStr } = req.body;
-    const municipalityName = convertMunCodeToName(municipalityCode);
-    const date = convertStrToDate(dateStr);
-    const predictedFires = await predictFires(municipalityName, date);
-    res.json({
-      municipalityCode,
-      municipalityName,
-      predictedFires,
-    });
-  } catch (error) {
-    console.error(`An error occurred: ${error.message}`);
-    if (
-      error.message === 'Invalid date' ||
-      error.message === 'Invalid municipality code'
-    ) {
-      return res.status(400).send(error.message);
-    }
-    return res.status(500).send('Internal Server Error');
-  }
+app.use('/api', apiRouter);
+
+// Create Not Found Error
+app.use((req, res, next) => {
+  next(createError(404));
 });
 
-app.listen(port, () => {
-  console.log(`API server running at http://localhost:${port}`);
+// Error Handling Middleware
+app.use((err, req, res, next) => {
+  res.status(err.status || 500);
+  res.json({
+    message: err.message,
+    // Provide stack trace in development mode
+    error: app.get('env') === 'development' ? err.stack : {},
+  });
 });
+
+export default app;
