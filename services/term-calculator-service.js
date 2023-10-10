@@ -8,12 +8,9 @@ const houseTypeFunctions = {
   houseType4: temporalTerm_houseType4,
 };
 
-export async function calculateSpatialTerms(municipalityName) {
+export async function calculateSpatialTerms(muniName) {
   try {
-    const output = await executeRScript(
-      PATHS.MUNICIPALITY_SCRIPT,
-      municipalityName
-    );
+    const output = await executeRScript(PATHS.MUNICIPALITY_SCRIPT, muniName);
     return output.split(',').reduce(function (obj, value, index) {
       obj[`houseType${index + 1}`] = parseFloat(value.trim());
       return obj;
