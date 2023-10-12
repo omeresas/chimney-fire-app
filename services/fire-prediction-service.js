@@ -1,6 +1,6 @@
 import {
   calculateSpatialTerms,
-  calculateTemporalTerms,
+  calculateTemporalTerms
 } from './term-calculator-service.js';
 import { thetaValues, windChillArr, windSpeedArr } from '../data/index.js';
 
@@ -9,7 +9,7 @@ export async function predictFires(muniName, date) {
     date,
     thetaValues,
     windChillArr,
-    windSpeedArr,
+    windSpeedArr
   });
   const spatialTerms = await calculateSpatialTerms(muniName);
   const expectedFires = multiplyTerms(spatialTerms, temporalTerms);
@@ -19,7 +19,10 @@ export async function predictFires(muniName, date) {
 function multiplyTerms(spatialTerms, temporalTerms) {
   let expectedFires = 0;
   for (const key in spatialTerms) {
-    if (spatialTerms.hasOwnProperty(key) && temporalTerms.hasOwnProperty(key)) {
+    if (
+      Object.prototype.hasOwnProperty.call(spatialTerms, key) &&
+      Object.prototype.hasOwnProperty.call(temporalTerms, key)
+    ) {
       expectedFires += spatialTerms[key] * temporalTerms[key];
     }
   }
