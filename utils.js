@@ -31,7 +31,7 @@ export function convertStrToDate(dateStr) {
 
 export function executeRScript(scriptPath, args) {
   return new Promise((resolve, reject) => {
-    exec(`Rscript ${scriptPath} ${args}`, function (error, stdout, stderr) {
+    exec(`Rscript ${scriptPath} ${args}`, function (error, stdout) {
       if (error) {
         console.error(`Error executing R script: ${error}`);
         return reject(new Error('Internal Server Error'));

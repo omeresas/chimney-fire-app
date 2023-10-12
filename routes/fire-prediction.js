@@ -15,7 +15,7 @@ router.get('/', async (req, res, next) => {
     res.json({
       muniCode,
       muniName,
-      predictedFires,
+      predictedFires
     });
   } catch (error) {
     console.error(`An error occurred: ${error.message}`);

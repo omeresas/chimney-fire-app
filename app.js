@@ -17,12 +17,12 @@ app.use((req, res, next) => {
 });
 
 // Error Handling Middleware
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   res.status(err.status || 500);
   res.json({
     message: err.message,
     // Provide stack trace in development mode
-    error: app.get('env') === 'development' ? err.stack : {},
+    error: app.get('env') === 'development' ? err.stack : {}
   });
 });
 

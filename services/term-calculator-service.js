@@ -5,7 +5,7 @@ const houseTypeFunctions = {
   houseType1: temporalTerm_houseType1,
   houseType2: temporalTerm_houseType2,
   houseType3: temporalTerm_houseType3,
-  houseType4: temporalTerm_houseType4,
+  houseType4: temporalTerm_houseType4
 };
 
 export async function calculateSpatialTerms(muniName) {
@@ -24,7 +24,7 @@ export function calculateTemporalTerms({
   date,
   thetaValues,
   windChillArr,
-  windSpeedArr,
+  windSpeedArr
 }) {
   const dayIndex = getDayOfYear(date);
   const windChill = windChillArr[dayIndex - 1];
@@ -39,7 +39,7 @@ export function calculateTemporalTerms({
       theta: thetaValues[key],
       windChill,
       windSpeed,
-      piOver365TimesDayIndex,
+      piOver365TimesDayIndex
     };
 
     if (typeof houseTypeFunctions[key] === 'function') {
@@ -103,7 +103,7 @@ function temporalTerm_houseType4({
   theta,
   windChill,
   windSpeed,
-  piOver365TimesDayIndex,
+  piOver365TimesDayIndex
 }) {
   const result = Math.exp(
     theta[0] +
