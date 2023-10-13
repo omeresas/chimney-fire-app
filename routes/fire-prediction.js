@@ -1,20 +1,21 @@
 import express from 'express';
 import createError from 'http-errors';
 import { predictFires } from '../services/fire-prediction-service.js';
-import { convertMunCodeToName, convertStrToDate } from '../utils.js';
+import { isValidCode } from '../services/area-code-validator.js';
+import { convertStrToDate } from '../utils.js';
 
 const router = express.Router();
 
 router.get('/', async (req, res, next) => {
   try {
-    const { muniCode, date: dateStr } = req.query;
-    const muniName = convertMunCodeToName(muniCode);
+    const { areaCode, date: dateStr } = req.query;
+
     const date = convertStrToDate(dateStr);
-    const predictedFires = await predictFires(muniName, date);
+    isValidCode(areaCode);
+    const predictedFires = await predictFires(areaCode, date);
 
     res.json({
-      muniCode,
-      muniName,
+      areaCode,
       predictedFires
     });
   } catch (error) {
@@ -22,7 +23,7 @@ router.get('/', async (req, res, next) => {
 
     if (
       error.message === 'Invalid date' ||
-      error.message === 'Invalid municipality code'
+      error.message === 'Invalid area code'
     ) {
       return next(createError(400, error.message)); // Bad Request
     }

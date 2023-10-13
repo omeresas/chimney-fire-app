@@ -4,14 +4,14 @@ import {
 } from './term-calculator-service.js';
 import { thetaValues, windChillArr, windSpeedArr } from '../data/index.js';
 
-export async function predictFires(muniName, date) {
+export async function predictFires(areaCode, date) {
   const temporalTerms = calculateTemporalTerms({
     date,
     thetaValues,
     windChillArr,
     windSpeedArr
   });
-  const spatialTerms = await calculateSpatialTerms(muniName);
+  const spatialTerms = await calculateSpatialTerms(areaCode);
   const expectedFires = multiplyTerms(spatialTerms, temporalTerms);
   return expectedFires;
 }

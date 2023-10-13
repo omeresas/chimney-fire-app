@@ -1,5 +1,5 @@
 const PATHS = {
-  MUNICIPALITY_SCRIPT: 'r/r-script/municipality.R'
+  SPATIAL_OVERLAPPING_SCRIPT: 'r/r-script/spatial_overlapping.R'
 };
 
 export default PATHS;
