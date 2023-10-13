@@ -8,9 +8,12 @@ const houseTypeFunctions = {
   houseType4: temporalTerm_houseType4
 };
 
-export async function calculateSpatialTerms(muniName) {
+export async function calculateSpatialTerms(areaCode) {
   try {
-    const output = await executeRScript(PATHS.MUNICIPALITY_SCRIPT, muniName);
+    const output = await executeRScript(
+      PATHS.SPATIAL_OVERLAPPING_SCRIPT,
+      areaCode
+    );
     return output.split(',').reduce(function (obj, value, index) {
       obj[`houseType${index + 1}`] = parseFloat(value.trim());
       return obj;
