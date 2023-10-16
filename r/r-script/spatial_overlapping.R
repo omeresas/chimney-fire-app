@@ -1,5 +1,5 @@
 library(raster)
-library(maptools)
+library(sf)
 
 # Function to determine area type and return appropriate polygon
 get_area_polygon <- function(code) {
@@ -19,11 +19,11 @@ get_area_polygon <- function(code) {
 }
 
 # Set working directory
-setwd("/Users/omeresas/Desktop/devProjects/chimney-fire-app")
+setwd(Sys.getenv("MY_APP_PATH", unset = "/usr/src/app"))
 
 # Load the Twente municipal boundaries
-buurten <- readShapeSpatial("r/r-data/shapefiles/buurten/buurten.shp")
-boxes <- readShapeSpatial("r/r-data/shapefiles/boxes/boxes.shp")
+buurten <- st_read("r/r-data/shapefiles/buurten/buurten.shp", quiet = TRUE)
+boxes <- st_read("r/r-data/shapefiles/boxes/boxes.shp", quiet = TRUE)
 
 # Load the House Type ppp objects
 load("r/r-data/house_1_density_ppp.RData")

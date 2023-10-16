@@ -1,20 +1,33 @@
-# Use the official Node.js image from the DockerHub
-FROM node:14
+# Use the official Node.js image as a base image
+FROM node:18
 
-# Set the working directory in docker
+# Install R and necessary system libraries
+RUN apt-get update && apt-get install -y \
+    r-base \
+    libgdal-dev \
+    libproj-dev \
+    libudunits2-dev \
+    libgeos-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install necessary R packages
+RUN R -e "install.packages(c('sf', 'raster'), repos='http://cran.rstudio.com/')"
+
+# Set working directory in the container
 WORKDIR /usr/src/app
 
 # Copy the dependencies file to the working directory
 COPY package*.json ./
 
-# Install any dependencies
-RUN npm install
+# Install the dependencies
+RUN npm install --only=production
 
-# Copy the content of the local src directory to the working directory
+# Copy the content of the local source directory to the working directory
 COPY . .
 
-# Specify the command to run on container start
-CMD [ "node", "app.js" ]
+# Set the environment variable
+ENV MY_APP_PATH /usr/src/app
 
-# Expose the port the app runs on
-EXPOSE 3000
+# Specify the command to run on container start
+CMD [ "npm", "start" ]

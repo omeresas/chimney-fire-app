@@ -55,3 +55,28 @@ curl -G http://localhost:3000/api/fire-prediction --data-urlencode "areaCode=GM0
   "predictedFires": 0.11390911777445555
 }
 ```
+
+## Running the Docker Container
+
+### 1. Pull the Image
+
+```bash
+docker pull oesasdocker/chimney-fire-project:latest
+```
+
+### 2. Run Docker Container
+
+The app reads the port from an environment variable `PORT`. If it's not set, it will default to `3000`. When you run the Docker container, you can specify the port on which you want the app to run by setting the `PORT` environment variable:
+
+```bash
+docker run -p desiredExternalPort:desiredAppPort -e PORT=desiredAppPort oesasdocker/chimney-fire-project:latest
+```
+
+- `desiredExternalPort`: This is the port on the host machine that will forward to `desiredAppPort` inside the container.
+- `desiredAppPort`: This is the port inside the container on which the app will run.
+
+For example, if you want the app to run on port `8080` inside the container and be accessible on port `4000` of the host machine:
+
+```bash
+docker run -p 4000:8080 -e PORT=8080 oesasdocker/chimney-fire-project:latest
+```

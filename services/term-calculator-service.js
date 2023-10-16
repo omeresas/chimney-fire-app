@@ -1,5 +1,8 @@
 import { executeRScript, getDayOfYear } from '../utils.js';
 import PATHS from '../paths.js';
+import debugLib from 'debug';
+
+const debug = debugLib('chimney-fire-app:spatial-terms');
 
 const houseTypeFunctions = {
   houseType1: temporalTerm_houseType1,
@@ -14,6 +17,9 @@ export async function calculateSpatialTerms(areaCode) {
       PATHS.SPATIAL_OVERLAPPING_SCRIPT,
       areaCode
     );
+
+    debug('Spatial terms are:\n' + output);
+
     return output.split(',').reduce(function (obj, value, index) {
       obj[`houseType${index + 1}`] = parseFloat(value.trim());
       return obj;
