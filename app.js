@@ -2,6 +2,7 @@ import createError from 'http-errors';
 import express from 'express';
 import logger from 'morgan';
 import apiRouter from './routes/api-router.js';
+import 'dotenv/config';
 
 const app = express();
 
