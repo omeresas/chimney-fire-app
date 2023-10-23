@@ -13,7 +13,7 @@ The final prediction is computed by multiplying the spatial and temporal predict
 
 ## API Endpoint
 
-### `GET /api/fire-prediction`
+### `GET /prediction`
 
 #### Query Parameters
 
@@ -23,7 +23,7 @@ The final prediction is computed by multiplying the spatial and temporal predict
 Example query:
 
 ```
-/api/fire-prediction?areaCode=GM0153&date=2023-01-01
+/prediction?areaCode=GM0153&date=2023-01-01
 ```
 
 #### Response
@@ -31,6 +31,7 @@ Example query:
 ```json
 {
   "areaCode": "string",
+  "date": "string",
   "predictedFires": "number"
 }
 ```
@@ -52,6 +53,7 @@ curl -G http://localhost:3000/api/fire-prediction --data-urlencode "areaCode=GM0
 ```json
 {
   "areaCode": "GM0153",
+  "date": "2023-01-01T00:00:00.000Z",
   "predictedFires": 0.11390911777445555
 }
 ```

@@ -1,7 +1,7 @@
 import createError from 'http-errors';
 import express from 'express';
 import logger from 'morgan';
-import predictionRouter from './routes/prediction';
+import predictionRouter from './routes/prediction.js';
 import 'dotenv/config';
 
 const app = express();
@@ -18,7 +18,7 @@ app.use((req, res, next) => {
 });
 
 // Error Handling Middleware
-app.use((err, req, res) => {
+app.use((err, req, res, _next) => {
   res.status(err.status || 500);
   res.json({
     message: err.message,
