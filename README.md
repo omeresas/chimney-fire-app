@@ -60,6 +60,8 @@ curl -G http://localhost:3000/prediction --data-urlencode "areaCode=BU01411000" 
 
 #### Example Output
 
+Note that the array of coordinates is kept short on purpose in below example.
+
 ```json
 {
   "areaCode": "BU01411000",
@@ -71,7 +73,6 @@ curl -G http://localhost:3000/prediction --data-urlencode "areaCode=BU01411000" 
     "geometry": {
       "type": "Polygon",
       "coordinates": [
-        //array below is kept short for examplary purposes
         [
           [242557.0675, 486757.7291],
           [242550.2459, 486801.7022],
