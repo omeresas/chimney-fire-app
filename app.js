@@ -1,7 +1,7 @@
 import createError from 'http-errors';
 import express from 'express';
 import logger from 'morgan';
-import apiRouter from './routes/api-router.js';
+import predictionRouter from './routes/prediction';
 import 'dotenv/config';
 
 const app = express();
@@ -10,7 +10,7 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-app.use('/api', apiRouter);
+app.use('/prediction', predictionRouter);
 
 // Create Not Found Error
 app.use((req, res, next) => {

@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "NODE_ENV=production node ./bin/www",
-    "devstart": "NODE_ENV=development nodemon ./bin/www",
-    "serverstart": "DEBUG=chimney-fire-app:* npm run devstart"
+    "dev": "DEBUG=chimney-fire-app:* NODE_ENV=development nodemon ./bin/www"
   },
   "dependencies": {
     "debug": "~2.6.9",
