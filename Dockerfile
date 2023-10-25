@@ -24,10 +24,11 @@ COPY package*.json ./
 RUN npm install --only=production
 
 # Copy the content of the local source directory to the working directory
-COPY . .
+COPY src/ .
 
 # Set the environment variable
-ENV MY_APP_PATH /usr/src/app
+ENV MY_APP_PATH=/usr/src/app
+ENV SPATIAL_SCRIPT_PATH=r/r-script/spatial_overlapping.R
 
 # Specify the command to run on container start
-CMD [ "npm", "start" ]
+CMD [ "node", "./bin/www.js" ]

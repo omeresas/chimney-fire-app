@@ -1,7 +1,14 @@
 import { readFile } from 'fs/promises';
 import { exec } from 'child_process';
+import { fileURLToPath } from 'url';
+import debugLib from 'debug';
 
-const municipalityCodes = await readJson('./data/municipalityCodes.json');
+const debug = debugLib('chimney-fire-app:spatial-terms');
+
+const filePathOfData = fileURLToPath(
+  new URL('data/municipalityCodes.json', import.meta.url)
+);
+const municipalityCodes = await readJson(filePathOfData);
 
 export async function readJson(path) {
   try {
@@ -31,6 +38,7 @@ export function convertStrToDate(dateStr) {
 
 export function executeRScript(scriptPath, args) {
   return new Promise((resolve, reject) => {
+    debug(`Executing R script: Rscript ${scriptPath} ${args}`);
     exec(`Rscript ${scriptPath} ${args}`, function (error, stdout) {
       if (error) {
         console.error(`Error executing R script: ${error}`);
