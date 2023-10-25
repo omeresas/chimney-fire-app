@@ -1,5 +1,4 @@
 import { executeRScript, getDayOfYear } from '../utils.js';
-import PATHS from '../paths.js';
 import debugLib from 'debug';
 
 const debug = debugLib('chimney-fire-app:spatial-terms');
@@ -14,7 +13,7 @@ const houseTypeFunctions = {
 export async function calculateSpatialTerms(areaCode) {
   try {
     const output = await executeRScript(
-      PATHS.SPATIAL_OVERLAPPING_SCRIPT,
+      `${process.env.MY_APP_PATH}/${process.env.SPATIAL_SCRIPT_PATH}`,
       areaCode
     );
 
