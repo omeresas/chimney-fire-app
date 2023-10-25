@@ -23,12 +23,12 @@ The final prediction is computed by multiplying the spatial and temporal predict
 Example query:
 
 ```
-/prediction?areaCode=BU01411000&date=2023-01-01
+/prediction?areaCode=GM0164&date=2023-01-01
 ```
 
 #### Response
 
-The `geoInfo` property returns a GeoJSON object complying to GeoJSON RFC 7946 specifications, such as right hand rule ordering of linear rings, aka order of items in `geometry.coordinates`.
+The `geoInfo` property returns a GeoJSON object that tells about the geometry of the queried neighbourhood.
 
 ```json
 {
@@ -37,10 +37,23 @@ The `geoInfo` property returns a GeoJSON object complying to GeoJSON RFC 7946 sp
   "predictedFires": "number",
   "geoInfo": {
     "type": "Feature",
-    "properties": {},
+    "crs": {
+      "type": "name",
+      "properties": {
+        "name": "urn:ogc:def:crs:EPSG::28992"
+      }
+    },
+    "properties": {
+            "id": "number",
+            "fid": "number",
+            "gemeenteco": "string",
+            "gemeentena": "string",
+            "jaarstatco": "string",
+            "jaar": "number"
+        },,
     "geometry": {
-      "type": "Polygon",
-      "coordinates": "array"
+      "type": "MultiPolygon",
+      "coordinates": "array[][][][]"
     }
   }
 }
@@ -55,7 +68,7 @@ Given a `areaCode` and a `date` as query parameters, the API returns the predict
 Assuming the API server is running locally on port 3000:
 
 ```plaintext
-curl -G http://localhost:3000/prediction --data-urlencode "areaCode=BU01411000" --data-urlencode "date=2023-01-01"
+curl -G http://localhost:3000/prediction --data-urlencode "areaCode=GM0164" --data-urlencode "date=2023-01-01"
 ```
 
 #### Example Output
@@ -64,22 +77,34 @@ Note that the array of coordinates is kept short on purpose in below example.
 
 ```json
 {
-  "areaCode": "BU01411000",
+  "areaCode": "GM0164",
   "date": "2023-01-01T00:00:00.000Z",
-  "predictedFires": 0.00220974867688225,
+  "predictedFires": 0.07389275859749127,
   "geoInfo": {
     "type": "Feature",
-    "properties": {},
+    "crs": {
+      "type": "name",
+      "properties": {
+        "name": "urn:ogc:def:crs:EPSG::28992"
+      }
+    },
+    "properties": {
+      "id": 114,
+      "fid": 114,
+      "gemeenteco": "GM0164",
+      "gemeentena": "Hengelo",
+      "jaarstatco": "2021GM0164",
+      "jaar": 2021
+    },
     "geometry": {
-      "type": "Polygon",
+      "type": "MultiPolygon",
       "coordinates": [
         [
-          [242557.0675, 486757.7291],
-          [242550.2459, 486801.7022],
-          [242529.9823, 486799.9199],
-          [242586.9057, 486603.8248],
-          [242573.4457, 486669.1897],
-          [242557.0675, 486757.7291]
+          [
+            [251978.591, 481220.258],
+            [251979.382, 481218.495],
+            [251983.707, 481220.19]
+          ]
         ]
       ]
     }
