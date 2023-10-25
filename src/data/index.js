@@ -10,8 +10,8 @@ export const windChillArr = await readJson(
 export const windSpeedArr = await readJson(
   fileURLToPath(new URL('windSpeed.json', import.meta.url))
 );
-export const buurtenGeo = await readJson(
-  fileURLToPath(new URL('buurtenGeo.json', import.meta.url))
+export const areaGeometry = await readJson(
+  fileURLToPath(new URL('areaGeometry.json', import.meta.url))
 );
 
 export { default as areaCodes } from './areaCodes.js';
