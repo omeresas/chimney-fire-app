@@ -12,6 +12,10 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use('/prediction', predictionRouter);
 
+app.get('/health', (req, res) => {
+  res.status(200).send('Healthy');
+});
+
 // Create Not Found Error
 app.use((req, res, next) => {
   next(createError(404));
