@@ -30,5 +30,8 @@ COPY src/ .
 ENV MY_APP_PATH=/usr/src/app
 ENV SPATIAL_SCRIPT_PATH=r/r-script/spatial_overlapping.R
 
+# Inform Docker that the container listens on 3000
+EXPOSE 3000
+
 # Specify the command to run on container start
 CMD [ "node", "./bin/www.js" ]
