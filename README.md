@@ -112,7 +112,7 @@ Note that the array of coordinates is kept short on purpose in below example.
 }
 ```
 
-## Running the Docker Container
+## Running the Docker Container via Docker CLI
 
 ### 1. Pull the Image
 
@@ -136,3 +136,21 @@ For example, if you want the app to run on port `8080` inside the container and 
 ```bash
 docker run -p 4000:8080 -e PORT=8080 oesasdocker/chimney-fire-project:latest
 ```
+
+## Deploying to Azure App Service
+
+When deploying the application to Azure App Service, there are specific settings to be aware of to ensure smooth deployment and operation of the application.
+
+### Application Settings
+
+1. **WEBSITES_PORT Configuration**:
+   - In the Azure portal, navigate to your App Service.
+   - Go to the `Settings` section and select `Configuration`.
+   - Under the `Application settings` tab, add a new key-value pair:
+     - **Name**: `WEBSITES_PORT`
+     - **Value**: `3000`
+       This setting ensures that Azure knows to communicate with the container using port 3000.
+
+### Environment Variables
+
+- **PORT Environment Variable**: There is no need to specify a `PORT` environment variable in the application or container settings. The application defaults to using port 3000 as the container port.
