@@ -4,14 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "NODE_ENV=production node ./src/bin/www",
-    "dev": "DEBUG=chimney-fire-app:* NODE_ENV=development nodemon ./src/bin/www"
+    "start": "NODE_ENV=production node ./bin/www",
+    "dev": "DEBUG=chimney-fire-app:* NODE_ENV=development nodemon ./bin/www"
   },
   "dependencies": {
-    "debug": "~2.6.9",
+    "debug": "^4.3.4",
     "dotenv": "^16.3.1",
     "express": "^5.0.0-beta.1",
-    "http-errors": "~1.6.3",
+    "http-errors": "^2.0.0",
     "morgan": "~1.9.1"
   },
   "devDependencies": {

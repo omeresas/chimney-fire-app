@@ -18,7 +18,7 @@ app.get('/health', (req, res) => {
 
 // Create Not Found Error
 app.use((req, res, next) => {
-  next(createError(404));
+  next(new createError.NotFound());
 });
 
 // Error Handling Middleware

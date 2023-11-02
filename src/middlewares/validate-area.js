@@ -17,8 +17,7 @@ export default function validateArea(req, res, next) {
 
   // If type is unidentified or code is not in the set, throw an error
   if (!type || !areaCodes[type].has(areaCode)) {
-    console.error(`Invalid area code: ${areaCode}`);
-    return next(createError(400, 'Invalid area code')); // Bad Request
+    return next(new createError.BadRequest('Invalid area code'));
   }
 
   next();
