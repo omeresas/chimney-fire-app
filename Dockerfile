@@ -1,12 +1,8 @@
 # Use the official Node.js image as a base image
-FROM node:18
+FROM node:18 AS base
 
 # Set working directory in the container
 WORKDIR /app
-
-# Set the environment variable
-ENV MY_APP_PATH=/usr/src/app
-ENV SPATIAL_SCRIPT_PATH=r/r-script/spatial_overlapping.R
 
 # Install R and necessary system libraries
 RUN apt-get update && apt-get install -y \
@@ -31,8 +27,24 @@ RUN npm install --only=production
 COPY src/ src/
 COPY bin/ bin/
 
+# Set the environment variable
+ENV MY_APP_PATH=/app/src
+ENV SPATIAL_SCRIPT_PATH=r/r-script/spatial_overlapping.R
+
 # Inform Docker that the container listens on 3000
 EXPOSE 3000
 
+# Production stage
+FROM base AS production
+
 # Specify the command to run on container start
 CMD [ "npm", "run", "start" ]
+
+# Development Stage
+FROM base AS development
+
+# Install both prod and dev dependencies
+RUN npm install
+
+# Specify the command to run on container start
+CMD [ "npm", "run", "dev" ]

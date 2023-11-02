@@ -19,7 +19,7 @@ get_area_polygon <- function(code) {
 }
 
 # Set working directory
-setwd(Sys.getenv("MY_APP_PATH", unset = "/usr/src/app"))
+setwd(Sys.getenv("MY_APP_PATH"))
 
 # Load the Twente municipal boundaries
 buurten <- st_read("r/r-data/shapefiles/buurten/buurten.shp", quiet = TRUE)
