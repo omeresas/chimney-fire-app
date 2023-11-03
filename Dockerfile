@@ -34,12 +34,6 @@ ENV SPATIAL_SCRIPT_PATH=r/r-script/spatial_overlapping.R
 # Inform Docker that the container listens on 3000
 EXPOSE 3000
 
-# Production stage
-FROM base AS production
-
-# Specify the command to run on container start
-CMD [ "npm", "run", "start" ]
-
 # Development Stage
 FROM base AS development
 
@@ -48,3 +42,9 @@ RUN npm install
 
 # Specify the command to run on container start
 CMD [ "npm", "run", "dev" ]
+
+# Production stage
+FROM base AS production
+
+# Specify the command to run on container start
+CMD [ "npm", "run", "start" ]
