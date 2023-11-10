@@ -74,7 +74,7 @@ async function fetchWeatherData() {
     const weatherForecast = data.data.map((day) => ({
       date: day.dag,
       avg_temp: day.avg_temp,
-      winds: day.winds
+      windkmh: day.windkmh
     }));
 
     return weatherForecast;
@@ -88,23 +88,18 @@ function calculateDailyInputs(weatherData) {
   return weatherData.map((eachDay) => {
     const dayIndex = getDayOfYear(eachDay.date);
     const piOver365TimesDayIndex = (Math.PI / 365) * dayIndex;
-    const windSpeedKmh = convertWindSpeedToKmph(parseFloat(eachDay.winds));
     const windChill = calculateWindChill(
       parseFloat(eachDay.avg_temp),
-      windSpeedKmh
+      parseFloat(eachDay.windkmh)
     );
 
     return {
       date: eachDay.date,
-      windSpeed: windSpeedKmh,
+      windSpeed: parseFloat(eachDay.windkmh),
       windChill: windChill,
       piOver365TimesDayIndex
     };
   });
-}
-
-function convertWindSpeedToKmph(windSpeedMps) {
-  return (windSpeedMps * 3.6).toFixed(2);
 }
 
 function calculateWindChill(temperature, windSpeed) {
