@@ -1,14 +1,8 @@
 import { readFile } from 'fs/promises';
 import { exec } from 'child_process';
-import { fileURLToPath } from 'url';
 import debugLib from 'debug';
 
 const debug = debugLib('chimney-fire-app:spatial-terms');
-
-const filePathOfData = fileURLToPath(
-  new URL('data/municipalityCodes.json', import.meta.url)
-);
-const municipalityCodes = await readJson(filePathOfData);
 
 export async function readJson(path) {
   try {
@@ -17,23 +11,6 @@ export async function readJson(path) {
   } catch (err) {
     console.error(`An error occurred while reading the file ${path}:`, err);
   }
-}
-
-export function convertMunCodeToName(code) {
-  const muniName = municipalityCodes[code];
-
-  if (!muniName) {
-    throw new Error('Invalid municipality code');
-  }
-
-  return muniName;
-}
-
-export function convertStrToDate(dateStr) {
-  if (!dateStr || isNaN(Date.parse(dateStr))) {
-    throw new Error('Invalid date');
-  }
-  return new Date(dateStr);
 }
 
 export function executeRScript(scriptPath, args) {
@@ -49,14 +26,13 @@ export function executeRScript(scriptPath, args) {
   });
 }
 
-export function getDayOfYear(date) {
-  const timestamp1 = Date.UTC(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate()
-  );
-  const timestamp2 = Date.UTC(date.getFullYear(), 0, 0);
-  const differenceInMilliseconds = timestamp1 - timestamp2;
+export function getDayOfYear(dateStr) {
+  // Parse the date string in the format 'DD-MM-YYYY'
+  const [day, month, year] = dateStr.split('-').map((num) => parseInt(num, 10));
+  // Create a Date object (month is 0-indexed in JavaScript Date)
+  const date = new Date(Date.UTC(year, month - 1, day));
+  const startOfYear = Date.UTC(date.getFullYear(), 0, 0);
+  const differenceInMilliseconds = date - startOfYear;
   const differenceInDays = differenceInMilliseconds / 1000 / 60 / 60 / 24;
   return differenceInDays;
 }
