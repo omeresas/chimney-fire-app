@@ -34,7 +34,7 @@ The response includes a `prediction` array that contains 11 objects, each repres
   "areaCode": "string",
   "prediction": [
     {
-      "date": "string", //in DD-MM-YYYY format
+      "date": "string",
       "numberOfFires": "number"
     }
   ],
@@ -76,6 +76,8 @@ curl -G http://localhost:3000/prediction --data-urlencode "areaCode=GM0164"
 
 #### Example Output
 
+Note that the number of items in `prediction` array and in `coordinates[][]` array is kept short in below example for readability. In `prediction`, the `date` is in DD-MM-YYYY format.
+
 ```json
 {
   "areaCode": "GM0164",
@@ -88,7 +90,6 @@ curl -G http://localhost:3000/prediction --data-urlencode "areaCode=GM0164"
       "date": "11-11-2023",
       "numberOfFires": 0.04
     }
-    // ... additional days and predictions
   ],
   "geoInfo": {
     "type": "Feature",
@@ -114,7 +115,6 @@ curl -G http://localhost:3000/prediction --data-urlencode "areaCode=GM0164"
             [251978.591, 481220.258],
             [251979.382, 481218.495],
             [251983.707, 481220.19]
-            // ... additional points
           ]
         ]
       ]
