@@ -7,9 +7,9 @@ This API predicts the expected number of chimney fires in various municipalities
 ### Prediction Model
 
 - **Spatial Prediction**: Uses precalculated values determined by an R script, which calculates the expected number of fires for different house types in various municipalities.
-- **Temporal Prediction**: A mathematical model calculates the expected number of fires based on temporal factors, such as the time of year and weather conditions (e.g., wind chill).
+- **Temporal Prediction**: Incorporates **weather forecast data from Meteoserver API** to forecast the expected number of fires based on temporal factors such as the time of year and current weather conditions **for today and the next ten days**.
 
-The final prediction is computed by multiplying the spatial and temporal predictions together, providing an estimate that considers both the inherent risk of the area and the specific conditions of the requested date.
+The final prediction is computed by multiplying the spatial and temporal predictions together, providing an estimate that considers both the inherent risk of the area and the specific conditions of weather forecast.
 
 ## API Endpoint
 
@@ -18,23 +18,26 @@ The final prediction is computed by multiplying the spatial and temporal predict
 #### Query Parameters
 
 - `areaCode`: A string representing the neighbourhood code or box ID.
-- `date`: A string representing the date in the "YYYY-MM-DD" format.
 
 Example query:
 
 ```
-/prediction?areaCode=GM0164&date=2023-01-01
+/prediction?areaCode=GM0164
 ```
 
 #### Response
 
-The `geoInfo` property returns a GeoJSON object that tells about the geometry of the queried neighbourhood.
+The response includes a `prediction` array that contains 11 objects, each representing the predicted number of chimney fires for a specific day. The `geoInfo` property returns a GeoJSON object that tells about the geometry of the queried neighbourhood.
 
 ```json
 {
   "areaCode": "string",
-  "date": "string",
-  "predictedFires": "number",
+  "prediction": [
+    {
+      "date": "string", //in DD-MM-YYYY format
+      "numberOfFires": "number"
+    }
+  ],
   "geoInfo": {
     "type": "Feature",
     "crs": {
@@ -61,25 +64,32 @@ The `geoInfo` property returns a GeoJSON object that tells about the geometry of
 
 #### Description
 
-Given a `areaCode` and a `date` as query parameters, the API returns the predicted number of chimney fires in the specified municipality on the specified date. It utilizes both spatial and temporal models for the prediction.
+Given an `areaCode`, the API returns the predicted number of chimney fires in the specified municipality for today and the next ten days. It utilizes both spatial and temporal models for the prediction.
 
 ### Example Usage
 
 Assuming the API server is running locally on port 3000:
 
 ```plaintext
-curl -G http://localhost:3000/prediction --data-urlencode "areaCode=GM0164" --data-urlencode "date=2023-01-01"
+curl -G http://localhost:3000/prediction --data-urlencode "areaCode=GM0164"
 ```
 
 #### Example Output
 
-Note that the array of coordinates is kept short on purpose in below example.
-
 ```json
 {
   "areaCode": "GM0164",
-  "date": "2023-01-01T00:00:00.000Z",
-  "predictedFires": 0.07389275859749127,
+  "prediction": [
+    {
+      "date": "10-11-2023",
+      "numberOfFires": 0.06
+    },
+    {
+      "date": "11-11-2023",
+      "numberOfFires": 0.04
+    }
+    // ... additional days and predictions
+  ],
   "geoInfo": {
     "type": "Feature",
     "crs": {
@@ -104,6 +114,7 @@ Note that the array of coordinates is kept short on purpose in below example.
             [251978.591, 481220.258],
             [251979.382, 481218.495],
             [251983.707, 481220.19]
+            // ... additional points
           ]
         ]
       ]
@@ -122,11 +133,13 @@ docker pull oesasdocker/chimney-fire-project:latest
 
 ### 2. Run Docker Container
 
-The app reads the port from an environment variable `PORT`. If it's not set, it will default to `3000`. When you run the Docker container, you can specify the port on which you want the app to run by setting the `PORT` environment variable:
+The app reads the port from an environment variable `PORT`. If it's not set, it will default to `3000`.
 
 ```bash
-docker run -p desiredExternalPort:desiredAppPort -e PORT=desiredAppPort oesasdocker/chimney-fire-project:latest
+docker run -e METEOSERVER_API_KEY=YOUR_KEY oesasdocker/chimney-fire-project:latest
 ```
+
+You can also change the port on the host machine:
 
 - `desiredExternalPort`: This is the port on the host machine that will forward to `desiredAppPort` inside the container.
 - `desiredAppPort`: This is the port inside the container on which the app will run.
@@ -134,7 +147,7 @@ docker run -p desiredExternalPort:desiredAppPort -e PORT=desiredAppPort oesasdoc
 For example, if you want the app to run on port `8080` inside the container and be accessible on port `4000` of the host machine:
 
 ```bash
-docker run -p 4000:8080 -e PORT=8080 oesasdocker/chimney-fire-project:latest
+docker run -p 4000:8080 -e PORT=8080 -e METEOSERVER_API_KEY=YOUR_KEY oesasdocker/chimney-fire-project:latest
 ```
 
 ## Deploying to Azure App Service
@@ -150,7 +163,7 @@ When deploying the application to Azure App Service, there are specific settings
      - **Name**: `WEBSITES_PORT`
      - **Value**: `3000`
        This setting ensures that Azure knows to communicate with the container using port 3000.
-
-### Environment Variables
-
-- **PORT Environment Variable**: There is no need to specify a `PORT` environment variable in the application or container settings. The application defaults to using port 3000 as the container port.
+2. **API Key Configuration**:
+   - Still in the `Application settings` tab of your App Service's `Configuration` section, add another key-value pair for the Meteoserver API key:
+     - **Name**: `METEOSERVER_API_KEY`
+     - **Value**: `your_meteoserver_api_key`

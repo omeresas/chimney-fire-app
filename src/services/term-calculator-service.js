@@ -1,3 +1,4 @@
+import fetch from 'node-fetch';
 import { executeRScript, getDayOfYear } from '../utils.js';
 import debugLib from 'debug';
 
@@ -28,35 +29,91 @@ export async function calculateSpatialTerms(areaCode) {
   }
 }
 
-export function calculateTemporalTerms({
-  date,
-  thetaValues,
-  windChillArr,
-  windSpeedArr
-}) {
-  const dayIndex = getDayOfYear(date);
-  const windChill = windChillArr[dayIndex - 1];
-  const windSpeed = windSpeedArr[dayIndex - 1];
-  const piOver365TimesDayIndex = (Math.PI / 365) * dayIndex;
+export async function calculateTemporalTerms(thetaValues) {
+  const weatherData = await fetchWeatherData();
+  const dailyInputArr = calculateDailyInputs(weatherData);
 
   const keys = Object.keys(thetaValues);
-  const temporalTerms = {};
 
-  for (const key of keys) {
-    const params = {
-      theta: thetaValues[key],
-      windChill,
-      windSpeed,
+  return dailyInputArr.map((eachDay) => {
+    const temporalTerms = {};
+
+    for (const key of keys) {
+      const params = {
+        theta: thetaValues[key],
+        windSpeed: eachDay.windSpeed,
+        windChill: eachDay.windChill,
+        piOver365TimesDayIndex: eachDay.piOver365TimesDayIndex
+      };
+
+      if (typeof houseTypeFunctions[key] === 'function') {
+        temporalTerms[key] = houseTypeFunctions[key](params);
+      } else {
+        console.warn(`No function found for key: ${key}`);
+      }
+    }
+
+    return {
+      date: eachDay.date,
+      houseType1: temporalTerms.houseType1,
+      houseType2: temporalTerms.houseType2,
+      houseType3: temporalTerms.houseType3,
+      houseType4: temporalTerms.houseType4
+    };
+  });
+}
+
+async function fetchWeatherData() {
+  const apiKey = process.env.METEOSERVER_API_KEY;
+  const url = `https://data.meteoserver.nl/api/dagverwachting.php?locatie=Lonneker&key=${apiKey}`;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+
+    const weatherForecast = data.data.map((day) => ({
+      date: day.dag,
+      avg_temp: day.avg_temp,
+      winds: day.winds
+    }));
+
+    return weatherForecast;
+  } catch (error) {
+    console.error('Error fetching weather data:', error);
+    return null;
+  }
+}
+
+function calculateDailyInputs(weatherData) {
+  return weatherData.map((eachDay) => {
+    const dayIndex = getDayOfYear(eachDay.date);
+    const piOver365TimesDayIndex = (Math.PI / 365) * dayIndex;
+    const windSpeedKmh = convertWindSpeedToKmph(parseFloat(eachDay.winds));
+    const windChill = calculateWindChill(
+      parseFloat(eachDay.avg_temp),
+      windSpeedKmh
+    );
+
+    return {
+      date: eachDay.date,
+      windSpeed: windSpeedKmh,
+      windChill: windChill,
       piOver365TimesDayIndex
     };
+  });
+}
 
-    if (typeof houseTypeFunctions[key] === 'function') {
-      temporalTerms[key] = houseTypeFunctions[key](params);
-    } else {
-      console.warn(`No function found for key: ${key}`);
-    }
-  }
-  return temporalTerms;
+function convertWindSpeedToKmph(windSpeedMps) {
+  return (windSpeedMps * 3.6).toFixed(2);
+}
+
+function calculateWindChill(temperature, windSpeed) {
+  const windChill =
+    13.12 +
+    0.6215 * temperature -
+    11.37 * Math.pow(windSpeed, 0.16) +
+    0.3965 * temperature * Math.pow(windSpeed, 0.16);
+  return windChill.toFixed(2);
 }
 
 function temporalTerm_houseType1({ theta, windChill, piOver365TimesDayIndex }) {

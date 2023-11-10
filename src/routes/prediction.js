@@ -1,18 +1,16 @@
 import express from 'express';
 import createError from 'http-errors';
 import validateArea from '../middlewares/validate-area.js';
-import validateDate from '../middlewares/validate-date.js';
 import { predictFires } from '../services/prediction-service.js';
 import { areaGeometry } from '../data/index.js';
 
 const router = express.Router();
 
-router.get('/', validateDate, validateArea, async (req, res, next) => {
+router.get('/', validateArea, async (req, res, next) => {
   const { areaCode } = req.query;
-  const { date } = req;
-  let predictedFires;
+  let prediction;
   try {
-    predictedFires = await predictFires(areaCode, date);
+    prediction = await predictFires(areaCode);
   } catch (error) {
     console.error(`An error occurred: ${error.message}`);
     return next(new createError.InternalServerError(error.message));
@@ -21,8 +19,7 @@ router.get('/', validateDate, validateArea, async (req, res, next) => {
 
   return res.send({
     areaCode,
-    date,
-    predictedFires,
+    prediction,
     geoInfo: {
       type: 'Feature',
       crs: {
