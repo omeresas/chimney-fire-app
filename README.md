@@ -17,12 +17,12 @@ The final prediction is computed by multiplying the spatial and temporal predict
 
 #### Query Parameters
 
-- `areaCode`: A string representing the neighbourhood code or box ID.
+- `areaId`: A string representing the neighbourhood code or box ID.
 
 Example query:
 
 ```
-/prediction?areaCode=GM0164
+/prediction?areaId=GM0164
 ```
 
 #### Response
@@ -31,7 +31,7 @@ The response includes a `prediction` array that contains 11 objects, each repres
 
 ```json
 {
-  "areaCode": "string",
+  "areaId": "string",
   "prediction": [
     {
       "date": "string",
@@ -64,14 +64,14 @@ The response includes a `prediction` array that contains 11 objects, each repres
 
 #### Description
 
-Given an `areaCode`, the API returns the predicted number of chimney fires in the specified municipality for today and the next ten days. It utilizes both spatial and temporal models for the prediction.
+Given an `areaId`, the API returns the predicted number of chimney fires in the specified municipality for today and the next ten days. It utilizes both spatial and temporal models for the prediction.
 
 ### Example Usage
 
 Assuming the API server is running locally on port 3000:
 
 ```plaintext
-curl -G http://localhost:3000/prediction --data-urlencode "areaCode=GM0164"
+curl -G http://localhost:3000/prediction --data-urlencode "areaId=GM0164"
 ```
 
 #### Example Output
@@ -80,7 +80,7 @@ Note that the number of items in `prediction` array and in `coordinates[][]` arr
 
 ```json
 {
-  "areaCode": "GM0164",
+  "areaId": "GM0164",
   "prediction": [
     {
       "date": "10-11-2023",

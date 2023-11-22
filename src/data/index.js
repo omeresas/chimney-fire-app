@@ -9,4 +9,8 @@ export const areaGeometry = await readJson(
   fileURLToPath(new URL('areaGeometry.json', import.meta.url))
 );
 
-export { default as areaCodes } from './areaCodes.js';
+export const houseCount = await readJson(
+  fileURLToPath(new URL('houseCount.json', import.meta.url))
+);
+
+export { default as areaIds } from './areaId.js';

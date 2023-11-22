@@ -1,30 +1,43 @@
+import debugLib from 'debug';
 import {
-  calculateSpatialTerms,
-  calculateTemporalTerms
+  calculateTemporalTermsMultipleDays,
+  readSpatialTerms
 } from './term-calculator-service.js';
 import { thetaValues } from '../data/index.js';
 
-export async function predictFires(areaCode) {
-  const temporalTermsArr = await calculateTemporalTerms(thetaValues);
-  const spatialTerms = await calculateSpatialTerms(areaCode);
-  const predictedFiresArr = multiplyTerms(spatialTerms, temporalTermsArr);
+const debug = debugLib('chimney-fire-app:model-terms');
+
+export async function predictFires(areaId) {
+  const temporalTermsMultipleDays =
+    await calculateTemporalTermsMultipleDays(thetaValues);
+  const spatialTerms = await readSpatialTerms(areaId);
+  const predictedFiresArr = multiplyTermsMultipleDays(
+    spatialTerms,
+    temporalTermsMultipleDays
+  );
   return predictedFiresArr;
 }
 
-function multiplyTerms(spatialTerms, temporalTermsArr) {
-  return temporalTermsArr.map((temporalTerms) => {
-    let expectedFires = 0;
-    for (const key in spatialTerms) {
-      if (
-        Object.prototype.hasOwnProperty.call(spatialTerms, key) &&
-        Object.prototype.hasOwnProperty.call(temporalTerms, key)
-      ) {
-        expectedFires += spatialTerms[key] * temporalTerms[key];
-      }
-    }
-    return {
-      date: temporalTerms.date,
-      numberOfFires: expectedFires.toFixed(2)
-    };
+function multiplyTermsMultipleDays(spatialTermsArr, temporalTermsArr) {
+  return temporalTermsArr.map((temporalTermsSingleDay) => {
+    return multiplyTermsSingleDay(spatialTermsArr, temporalTermsSingleDay);
   });
+}
+
+function multiplyTermsSingleDay(spatialTermsArr, temporalTerms) {
+  let expectedFires = 0;
+  for (let houseTypeIndex = 0; houseTypeIndex <= 3; houseTypeIndex++) {
+    expectedFires +=
+      spatialTermsArr[houseTypeIndex] * temporalTerms.terms[houseTypeIndex];
+  }
+
+  const prediction = {
+    date: temporalTerms.date,
+    numberOfFires: expectedFires.toFixed(2)
+  };
+
+  debug('Prediction for one day:');
+  debug(prediction);
+
+  return prediction;
 }

@@ -1,8 +1,17 @@
 import createError from 'http-errors';
-import { areaCodes } from '../data/index.js';
+import { areaIds } from '../data/index.js';
 
-export default function validateArea(req, res, next) {
-  const { areaCode } = req.query;
+export default function createAreaValidator(areaType) {
+  return function (req, res, next) {
+    req.areaType = areaType;
+    return validateArea(req, res, next);
+  };
+}
+
+function validateArea(req, res, next) {
+  const areaType = req.areaType;
+  const areaId = req.params[`${areaType}Id`];
+
   const patterns = {
     gemeente: /^GM\d{4}$/,
     wijk: /^WK\d{6}$/,
@@ -10,13 +19,8 @@ export default function validateArea(req, res, next) {
     box: /^\d{1,5}$/
   };
 
-  // Identify the type of code
-  const type = Object.keys(patterns).find((key) =>
-    patterns[key].test(areaCode)
-  );
-
-  // If type is unidentified or code is not in the set, throw an error
-  if (!type || !areaCodes[type].has(areaCode)) {
+  // Check if the areaId matches the pattern for its type
+  if (!patterns[areaType].test(areaId) || !areaIds[areaType].has(areaId)) {
     return next(new createError.BadRequest('Invalid area code'));
   }
 

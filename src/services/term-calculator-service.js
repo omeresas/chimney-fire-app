@@ -1,8 +1,9 @@
 import fetch from 'node-fetch';
-import { executeRScript, getDayOfYear } from '../utils.js';
 import debugLib from 'debug';
+import { getDayOfYear } from '../utils.js';
+import { houseCount } from '../data/index.js';
 
-const debug = debugLib('chimney-fire-app:spatial-terms');
+const debug = debugLib('chimney-fire-app:model-terms');
 
 const houseTypeFunctions = {
   houseType1: temporalTerm_houseType1,
@@ -11,32 +12,28 @@ const houseTypeFunctions = {
   houseType4: temporalTerm_houseType4
 };
 
-export async function calculateSpatialTerms(areaCode) {
-  try {
-    const output = await executeRScript(
-      `${process.env.MY_APP_PATH}/${process.env.SPATIAL_SCRIPT_PATH}`,
-      areaCode
-    );
+export function readSpatialTerms(areaId) {
+  const output = houseCount[areaId];
+  debug('Spatial terms:');
+  debug(output);
 
-    debug('Spatial terms are:\n' + output);
-
-    return output.split(',').reduce(function (obj, value, index) {
-      obj[`houseType${index + 1}`] = parseFloat(value.trim());
-      return obj;
-    }, {});
-  } catch (error) {
-    throw new Error('Failed to calculate spatial terms');
-  }
+  return output;
 }
 
-export async function calculateTemporalTerms(thetaValues) {
+export async function calculateTemporalTermsMultipleDays(thetaValues) {
   const weatherData = await fetchWeatherData();
   const dailyInputArr = calculateDailyInputs(weatherData);
 
   const keys = Object.keys(thetaValues);
 
-  return dailyInputArr.map((eachDay) => {
-    const temporalTerms = {};
+  debug('Theta values of temporal terms calculation:');
+  debug(thetaValues);
+
+  const multipleDays = dailyInputArr.map((eachDay) => {
+    const oneDay = {
+      date: eachDay.date,
+      terms: []
+    };
 
     for (const key of keys) {
       const params = {
@@ -47,20 +44,20 @@ export async function calculateTemporalTerms(thetaValues) {
       };
 
       if (typeof houseTypeFunctions[key] === 'function') {
-        temporalTerms[key] = houseTypeFunctions[key](params);
+        // insertion should start with houseType1 and goes like this
+        oneDay.terms.push(houseTypeFunctions[key](params));
       } else {
         console.warn(`No function found for key: ${key}`);
       }
     }
 
-    return {
-      date: eachDay.date,
-      houseType1: temporalTerms.houseType1,
-      houseType2: temporalTerms.houseType2,
-      houseType3: temporalTerms.houseType3,
-      houseType4: temporalTerms.houseType4
-    };
+    debug('Temporal terms for one day:');
+    debug(oneDay);
+
+    return oneDay;
   });
+
+  return multipleDays;
 }
 
 async function fetchWeatherData() {
