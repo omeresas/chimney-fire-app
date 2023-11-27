@@ -2,32 +2,28 @@
 
 ## Overview
 
-This API predicts the expected number of chimney fires in various municipalities given historical and meteorological data, leveraging both spatial and temporal prediction models. The API is designed to be both accurate and efficient, providing quick responses to client requests with minimized computational overhead.
+This API predicts the expected number of chimney fires in various municipalities, neighborhoods, and blocks, leveraging spatial and temporal prediction models. It provides efficient and accurate predictions based on spatial and temporal data.
 
 ### Prediction Model
 
-- **Spatial Prediction**: Uses precalculated values determined by an R script, which calculates the expected number of fires for different house types in various municipalities.
-- **Temporal Prediction**: Incorporates **weather forecast data from Meteoserver API** to forecast the expected number of fires based on temporal factors such as the time of year and current weather conditions **for today and the next ten days**.
+- **Spatial Terms**: Uses precalculated values based on house types in different areas.
+- **Temporal Terms**: Incorporates weather forecast data to forecast the expected number of fires for today and the next ten days.
 
-The final prediction is computed by multiplying the spatial and temporal predictions together, providing an estimate that considers both the inherent risk of the area and the specific conditions of weather forecast.
+## API Endpoints
 
-## API Endpoint
+### Individual Area Prediction
 
-### `GET /prediction`
+#### `GET /prediction/gemeente/:gemeenteId`, `/prediction/wijk/:wijkId`, `/prediction/buurt/:buurtId`
+
+These endpoints return the fire prediction for a specific municipality (`gemeente`), neighborhood (`wijk`), or block (`buurt`).
 
 #### Query Parameters
 
-- `areaId`: A string representing the neighbourhood code or box ID.
-
-Example query:
-
-```
-/prediction?areaId=GM0164
-```
+- `includeGeoInfo` (optional): Set to `false` to omit the `geoInfo` property in the response.
 
 #### Response
 
-The response includes a `prediction` array that contains 11 objects, each representing the predicted number of chimney fires for a specific day. The `geoInfo` property returns a GeoJSON object that tells about the geometry of the queried neighbourhood.
+The response includes a `prediction` array for the specified area and, optionally, the `geoInfo` property providing GeoJSON geometry data.
 
 ```json
 {
@@ -62,36 +58,31 @@ The response includes a `prediction` array that contains 11 objects, each repres
 }
 ```
 
-#### Description
+### Bulk Area Prediction
 
-Given an `areaId`, the API returns the predicted number of chimney fires in the specified municipality for today and the next ten days. It utilizes both spatial and temporal models for the prediction.
+#### `GET /prediction/gemeente, /prediction/wijk, /prediction/buurt`
 
-### Example Usage
+These endpoints return fire predictions for all areas of the specified type.
 
-Assuming the API server is running locally on port 3000:
+#### Query Parameters
 
-```plaintext
-curl -G http://localhost:3000/prediction --data-urlencode "areaId=GM0164"
-```
+- `includeGeoInfo` (optional): Set to `false` to omit the `geoInfo` property in the response.
 
-#### Example Output
+#### Response
 
-Note that the number of items in `prediction` array and in `coordinates[][]` array is kept short in below example for readability. In `prediction`, the `date` is in DD-MM-YYYY format.
+The response is an array of objects, each containing the prediction array for an area and, optionally, the geoInfo property.
 
 ```json
-{
-  "areaId": "GM0164",
-  "prediction": [
-    {
-      "date": "10-11-2023",
-      "numberOfFires": 0.06
-    },
-    {
-      "date": "11-11-2023",
-      "numberOfFires": 0.04
-    }
-  ],
-  "geoInfo": {
+[
+  {
+    "areaId": "string",
+    "prediction": [
+      {
+        "date": "string",
+        "numberOfFires": "number"
+      }
+    ],
+     "geoInfo": {
     "type": "Feature",
     "crs": {
       "type": "name",
@@ -100,27 +91,34 @@ Note that the number of items in `prediction` array and in `coordinates[][]` arr
       }
     },
     "properties": {
-      "id": 114,
-      "fid": 114,
-      "gemeenteco": "GM0164",
-      "gemeentena": "Hengelo",
-      "jaarstatco": "2021GM0164",
-      "jaar": 2021
-    },
+            "id": "number",
+            "fid": "number",
+            "gemeenteco": "string",
+            "gemeentena": "string",
+            "jaarstatco": "string",
+            "jaar": "number"
+        },,
     "geometry": {
       "type": "MultiPolygon",
-      "coordinates": [
-        [
-          [
-            [251978.591, 481220.258],
-            [251979.382, 481218.495],
-            [251983.707, 481220.19]
-          ]
-        ]
-      ]
+      "coordinates": "array[][][][]"
     }
   }
-}
+  },
+]
+```
+
+### Example Usage
+
+Request for a specific municipality with GeoInfo:
+
+```plaintext
+curl -G http://localhost:3000/prediction/gemeente/GM0164
+```
+
+Request for all municipalities without GeoInfo:
+
+```plaintext
+curl -G http://localhost:3000/prediction/gemeente --data-urlencode "includeGeoInfo=false"
 ```
 
 ## Running the Docker Container via Docker CLI
