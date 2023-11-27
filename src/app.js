@@ -1,8 +1,9 @@
 import createError from 'http-errors';
 import express from 'express';
 import logger from 'morgan';
-import predictionRouter from './routes/prediction.js';
 import 'dotenv/config';
+import predictionRouter from './routes/prediction.js';
+import { setTemporalTermsService } from './services/temporal-term-service.js';
 
 const app = express();
 
@@ -30,5 +31,8 @@ app.use((err, req, res, _next) => {
     error: app.get('env') === 'development' ? err.stack : {}
   });
 });
+
+// Set cron job and update weather info and resulting temporal terms
+await setTemporalTermsService();
 
 export default app;

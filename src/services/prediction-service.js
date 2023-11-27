@@ -1,19 +1,13 @@
 import debugLib from 'debug';
-import {
-  calculateTemporalTermsMultipleDays,
-  readSpatialTerms
-} from './term-calculator-service.js';
-import { thetaValues } from '../data/index.js';
+import { readSpatialTerms } from './spatial-term-service.js';
 
 const debug = debugLib('chimney-fire-app:model-terms');
 
 export async function predictFires(areaId) {
-  const temporalTermsMultipleDays =
-    await calculateTemporalTermsMultipleDays(thetaValues);
   const spatialTerms = await readSpatialTerms(areaId);
   const predictedFiresArr = multiplyTermsMultipleDays(
     spatialTerms,
-    temporalTermsMultipleDays
+    global.temporalTerms
   );
   return predictedFiresArr;
 }

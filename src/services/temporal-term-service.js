@@ -1,35 +1,88 @@
+import cron from 'node-cron';
 import fetch from 'node-fetch';
 import debugLib from 'debug';
 import { getDayOfYear } from '../utils.js';
-import { houseCount } from '../data/index.js';
+import { thetaValues } from '../data/index.js';
 
-const debug = debugLib('chimney-fire-app:model-terms');
+const debugModel = debugLib('chimney-fire-app:model-terms');
+const debugWeather = debugLib('chimney-fire-app:weather-forecast');
 
-const houseTypeFunctions = {
-  houseType1: temporalTerm_houseType1,
-  houseType2: temporalTerm_houseType2,
-  houseType3: temporalTerm_houseType3,
-  houseType4: temporalTerm_houseType4
-};
+export async function setTemporalTermsService() {
+  // Schedule the task to run at 1 AM every day
+  cron.schedule(
+    '0 1 * * *',
+    async () => {
+      global.temporalTerms = await setTemporalTerms(thetaValues);
+    },
+    {
+      scheduled: true,
+      timezone: 'Europe/Amsterdam'
+    }
+  );
 
-export function readSpatialTerms(areaId) {
-  const output = houseCount[areaId];
-  debug('Spatial terms:');
-  debug(output);
-
-  return output;
+  // Fetch weather data at application start
+  global.temporalTerms = await setTemporalTerms(thetaValues);
 }
 
-export async function calculateTemporalTermsMultipleDays(thetaValues) {
+async function setTemporalTerms() {
   const weatherData = await fetchWeatherData();
-  const dailyInputArr = calculateDailyInputs(weatherData);
+  const daiyInputs = calculateDailyInputs(weatherData);
+  const temporalTerms = calculateTemporalTerms(thetaValues, daiyInputs);
+  return temporalTerms;
+}
 
+async function fetchWeatherData() {
+  const apiKey = process.env.METEOSERVER_API_KEY;
+  const url = `https://data.meteoserver.nl/api/dagverwachting.php?locatie=Lonneker&key=${apiKey}`;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+
+    const weatherForecast = data.data.map((day) => ({
+      date: day.dag,
+      avg_temp: day.avg_temp,
+      windkmh: day.windkmh
+    }));
+
+    debugWeather('New weather data is fetched:');
+    debugWeather(weatherForecast);
+
+    return weatherForecast;
+  } catch (error) {
+    console.error('Error fetching weather data:', error);
+    return null;
+  }
+}
+
+function calculateDailyInputs(weatherData) {
+  return weatherData.map((eachDay) => {
+    const dayIndex = getDayOfYear(eachDay.date);
+    const piOver365TimesDayIndex = (Math.PI / 365) * dayIndex;
+    const windChill =
+      13.12 +
+      0.6215 * parseFloat(eachDay.avg_temp) -
+      11.37 * Math.pow(parseFloat(eachDay.windkmh), 0.16) +
+      0.3965 *
+        parseFloat(eachDay.avg_temp) *
+        Math.pow(parseFloat(eachDay.windkmh), 0.16);
+
+    return {
+      date: eachDay.date,
+      windSpeed: parseFloat(eachDay.windkmh),
+      windChill: windChill,
+      piOver365TimesDayIndex
+    };
+  });
+}
+
+function calculateTemporalTerms(thetaValues, dailyInputs) {
   const keys = Object.keys(thetaValues);
 
-  debug('Theta values of temporal terms calculation:');
-  debug(thetaValues);
+  debugModel('Theta values of temporal terms calculation:');
+  debugModel(thetaValues);
 
-  const multipleDays = dailyInputArr.map((eachDay) => {
+  const multipleDays = dailyInputs.map((eachDay) => {
     const oneDay = {
       date: eachDay.date,
       terms: []
@@ -51,8 +104,8 @@ export async function calculateTemporalTermsMultipleDays(thetaValues) {
       }
     }
 
-    debug('Temporal terms for one day:');
-    debug(oneDay);
+    debugModel('Temporal terms for one day:');
+    debugModel(oneDay);
 
     return oneDay;
   });
@@ -60,53 +113,12 @@ export async function calculateTemporalTermsMultipleDays(thetaValues) {
   return multipleDays;
 }
 
-async function fetchWeatherData() {
-  const apiKey = process.env.METEOSERVER_API_KEY;
-  const url = `https://data.meteoserver.nl/api/dagverwachting.php?locatie=Lonneker&key=${apiKey}`;
-
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
-
-    const weatherForecast = data.data.map((day) => ({
-      date: day.dag,
-      avg_temp: day.avg_temp,
-      windkmh: day.windkmh
-    }));
-
-    return weatherForecast;
-  } catch (error) {
-    console.error('Error fetching weather data:', error);
-    return null;
-  }
-}
-
-function calculateDailyInputs(weatherData) {
-  return weatherData.map((eachDay) => {
-    const dayIndex = getDayOfYear(eachDay.date);
-    const piOver365TimesDayIndex = (Math.PI / 365) * dayIndex;
-    const windChill = calculateWindChill(
-      parseFloat(eachDay.avg_temp),
-      parseFloat(eachDay.windkmh)
-    );
-
-    return {
-      date: eachDay.date,
-      windSpeed: parseFloat(eachDay.windkmh),
-      windChill: windChill,
-      piOver365TimesDayIndex
-    };
-  });
-}
-
-function calculateWindChill(temperature, windSpeed) {
-  const windChill =
-    13.12 +
-    0.6215 * temperature -
-    11.37 * Math.pow(windSpeed, 0.16) +
-    0.3965 * temperature * Math.pow(windSpeed, 0.16);
-  return windChill;
-}
+const houseTypeFunctions = {
+  houseType1: temporalTerm_houseType1,
+  houseType2: temporalTerm_houseType2,
+  houseType3: temporalTerm_houseType3,
+  houseType4: temporalTerm_houseType4
+};
 
 function temporalTerm_houseType1({ theta, windChill, piOver365TimesDayIndex }) {
   const result = Math.exp(
