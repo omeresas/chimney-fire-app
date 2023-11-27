@@ -2,7 +2,7 @@ import { readFile } from 'fs/promises';
 import { exec } from 'child_process';
 import debugLib from 'debug';
 
-const debug = debugLib('chimney-fire-app:spatial-terms');
+const debug = debugLib('chimney-fire-app:R-script');
 
 export async function readJson(path) {
   try {
