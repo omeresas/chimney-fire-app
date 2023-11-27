@@ -9,7 +9,7 @@ const router = express.Router();
 function createIndividualHandler(areaType) {
   return async (req, res, next) => {
     const areaId = req.params[`${areaType}Id`];
-    const includeGeoInfo = req.query.includeGeoInfo !== 'false';
+    const includeGeoInfo = req.query.excludeGeoInfo !== 'true';
     let output;
 
     try {
@@ -25,7 +25,7 @@ function createIndividualHandler(areaType) {
 
 function createBulkHandler(areaType) {
   return async (req, res, next) => {
-    const includeGeoInfo = req.query.includeGeoInfo !== 'false';
+    const includeGeoInfo = req.query.excludeGeoInfo !== 'true';
     let output;
     const outputArr = [];
 

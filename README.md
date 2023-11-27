@@ -19,7 +19,7 @@ These endpoints return the fire prediction for a specific municipality (`gemeent
 
 #### Query Parameters
 
-- `includeGeoInfo` (optional): Set to `false` to omit the `geoInfo` property in the response.
+- `excludeGeoInfo` (optional): Set to `true` to omit the `geoInfo` property in the response.
 
 #### Response
 
@@ -66,7 +66,7 @@ These endpoints return fire predictions for all areas of the specified type.
 
 #### Query Parameters
 
-- `includeGeoInfo` (optional): Set to `false` to omit the `geoInfo` property in the response.
+- `excludeGeoInfo` (optional): Set to `true` to omit the `geoInfo` property in the response.
 
 #### Response
 
@@ -118,7 +118,7 @@ curl -G http://localhost:3000/prediction/gemeente/GM0164
 Request for all municipalities without GeoInfo:
 
 ```plaintext
-curl -G http://localhost:3000/prediction/gemeente --data-urlencode "includeGeoInfo=false"
+curl -G http://localhost:3000/prediction/gemeente --data-urlencode "excludeGeoInfo=true"
 ```
 
 ## Running the Docker Container via Docker CLI
