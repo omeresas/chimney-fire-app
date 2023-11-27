@@ -33,7 +33,7 @@ function multiplyTermsSingleDay(spatialTermsArr, temporalTerms) {
 
   const prediction = {
     date: temporalTerms.date,
-    numberOfFires: expectedFires.toFixed(2)
+    numberOfFires: expectedFires.toFixed(4)
   };
 
   debug('Prediction for one day:');

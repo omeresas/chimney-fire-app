@@ -9,28 +9,33 @@ const router = express.Router();
 function createRouteHandler(areaType) {
   return async (req, res, next) => {
     const areaId = req.params[`${areaType}Id`];
-    let prediction;
+    const includeGeoInfo = req.query.includeGeoInfo !== 'false';
+
+    let predictionArr;
     try {
-      prediction = await predictFires(areaId);
+      predictionArr = await predictFires(areaId);
     } catch (error) {
       console.error(`An error occurred: ${error.message}`);
       return next(new createError.InternalServerError(error.message));
     }
-    const geoInfo = areaGeometry[areaId];
+
+    const geoInfo = includeGeoInfo
+      ? {
+          type: 'Feature',
+          crs: {
+            type: 'name',
+            properties: {
+              name: 'urn:ogc:def:crs:EPSG::28992'
+            }
+          },
+          ...areaGeometry[areaId]
+        }
+      : null;
 
     return res.send({
       areaId: areaId,
-      prediction,
-      geoInfo: {
-        type: 'Feature',
-        crs: {
-          type: 'name',
-          properties: {
-            name: 'urn:ogc:def:crs:EPSG::28992'
-          }
-        },
-        ...geoInfo
-      }
+      prediction: predictionArr,
+      ...(includeGeoInfo && { geoInfo })
     });
   };
 }
