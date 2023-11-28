@@ -1,25 +1,70 @@
-# Fire Prediction API
+# Chimney Fire Prediction API
 
 ## Overview
 
-This API predicts the expected number of chimney fires in various municipalities, neighborhoods, and blocks, leveraging spatial and temporal prediction models. It provides efficient and accurate predictions based on spatial and temporal data.
+This API predicts the expected number of chimney fires in various municipalities (gemeente), neighborhoods (wijk), and blocks (buurt) in Twente, leveraging spatial and temporal prediction models. It provides efficient and accurate predictions based on spatial and temporal data.
 
 ### Prediction Model
 
 - **Spatial Terms**: Uses precalculated values based on house types in different areas.
-- **Temporal Terms**: Incorporates weather forecast data to forecast the expected number of fires for today and the next ten days.
+- **Temporal Terms**: Incorporates weather forecast data to forecast the expected number of fires for today and the next ten days. The weather forecast is fetched every hour.
 
 ## API Endpoints
 
+### Aggregate Area Prediction
+
+- `GET /prediction/gemeente`
+- `GET /prediction/wijk`
+- `GET /prediction/buurt`
+
+These endpoints return fire predictions for all areas of the specified type, as an array of the objects in the structure below. The optional query parameter `excludeGeoInfo` can be set to `true` to omit the `geoInfo` property in the response.
+
+#### Response
+
+The response is an array of objects, each containing the `prediction` array for that area (geemente, wijk or buurt) and, optionally, the `geoInfo` property. `areaId` is the CBS code of that area.
+
+```json
+[
+  {
+    "areaId": "string",
+    "prediction": [
+      {
+        "date": "string",
+        "numberOfFires": "number"
+      }
+    ],
+     "geoInfo": {
+    "type": "Feature",
+    "crs": {
+      "type": "name",
+      "properties": {
+        "name": "urn:ogc:def:crs:EPSG::28992"
+      }
+    },
+    "properties": {
+            "id": "number",
+            "fid": "number",
+            "gemeenteco": "string",
+            "gemeentena": "string",
+            "jaarstatco": "string",
+            "jaar": "number"
+        },,
+    "geometry": {
+      "type": "MultiPolygon",
+      "coordinates": "array[][][][]"
+    }
+  }
+  },
+]
+```
+
 ### Individual Area Prediction
 
-#### `GET /prediction/gemeente/:gemeenteId`, `/prediction/wijk/:wijkId`, `/prediction/buurt/:buurtId`
+- `GET /prediction/gemeente/:gemeenteId`
+- `GET /prediction/wijk/:wijkId`
+- `GET /prediction/buurt/:buurtId`
 
-These endpoints return the fire prediction for a specific municipality (`gemeente`), neighborhood (`wijk`), or block (`buurt`).
-
-#### Query Parameters
-
-- `excludeGeoInfo` (optional): Set to `true` to omit the `geoInfo` property in the response.
+These endpoints return the fire prediction for a specific gemeente, wijk, or buurt, identified by their CBS codes. The optional query parameter `excludeGeoInfo` can be set to `true` to omit the `geoInfo` property in the response.
 
 #### Response
 
@@ -58,94 +103,32 @@ The response includes a `prediction` array for the specified area and, optionall
 }
 ```
 
-### Bulk Area Prediction
+## Hosting and Example Usage
 
-#### `GET /prediction/gemeente, /prediction/wijk, /prediction/buurt`
+The API is currently hosted on chimneyfireproject.azurewebsites.net domain.
 
-These endpoints return fire predictions for all areas of the specified type.
-
-#### Query Parameters
-
-- `excludeGeoInfo` (optional): Set to `true` to omit the `geoInfo` property in the response.
-
-#### Response
-
-The response is an array of objects, each containing the prediction array for an area and, optionally, the geoInfo property.
-
-```json
-[
-  {
-    "areaId": "string",
-    "prediction": [
-      {
-        "date": "string",
-        "numberOfFires": "number"
-      }
-    ],
-     "geoInfo": {
-    "type": "Feature",
-    "crs": {
-      "type": "name",
-      "properties": {
-        "name": "urn:ogc:def:crs:EPSG::28992"
-      }
-    },
-    "properties": {
-            "id": "number",
-            "fid": "number",
-            "gemeenteco": "string",
-            "gemeentena": "string",
-            "jaarstatco": "string",
-            "jaar": "number"
-        },,
-    "geometry": {
-      "type": "MultiPolygon",
-      "coordinates": "array[][][][]"
-    }
-  }
-  },
-]
-```
-
-### Example Usage
-
-Request for a specific municipality with GeoInfo:
+- Request for all gemeente:
 
 ```plaintext
-curl -G http://localhost:3000/prediction/gemeente/GM0164
+GET https://chimneyfireproject.azurewebsites.net/prediction/gemeente
 ```
 
-Request for all municipalities without GeoInfo:
+- Request for all buurten without GeoInfo:
 
 ```plaintext
-curl -G http://localhost:3000/prediction/gemeente --data-urlencode "excludeGeoInfo=true"
+GET https://chimneyfireproject.azurewebsites.net/prediction/buurt?excludeGeoInfo=true
 ```
 
-## Running the Docker Container via Docker CLI
+- Request for a specific gemeente:
 
-### 1. Pull the Image
-
-```bash
-docker pull oesasdocker/chimney-fire-project:latest
+```plaintext
+GET https://chimneyfireproject.azurewebsites.net/prediction/gemeente/GM0153
 ```
 
-### 2. Run Docker Container
+- Request for a specific wijk without GeoInfo:
 
-The app reads the port from an environment variable `PORT`. If it's not set, it will default to `3000`.
-
-```bash
-docker run -e METEOSERVER_API_KEY=YOUR_KEY oesasdocker/chimney-fire-project:latest
-```
-
-You can also change the port on the host machine:
-
-- `desiredExternalPort`: This is the port on the host machine that will forward to `desiredAppPort` inside the container.
-- `desiredAppPort`: This is the port inside the container on which the app will run.
-
-For example, if you want the app to run on port `8080` inside the container and be accessible on port `4000` of the host machine:
-
-```bash
-docker run -p 4000:8080 -e PORT=8080 -e METEOSERVER_API_KEY=YOUR_KEY oesasdocker/chimney-fire-project:latest
+```plaintext
+GET https://chimneyfireproject.azurewebsites.net/prediction/wijk/WK015300?excludeGeoInfo=true
 ```
 
 ## Deploying to Azure App Service

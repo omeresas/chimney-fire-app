@@ -8,9 +8,9 @@ const debugModel = debugLib('chimney-fire-app:model-terms');
 const debugWeather = debugLib('chimney-fire-app:weather-forecast');
 
 export async function setTemporalTermsService() {
-  // Schedule the task to run at 1 AM every day
+  // Schedule the task to run at minute 0 of every hour
   cron.schedule(
-    '0 1 * * *',
+    '0 * * * *',
     async () => {
       global.temporalTerms = await setTemporalTerms(thetaValues);
     },
