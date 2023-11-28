@@ -2,7 +2,7 @@
 
 ## Overview
 
-This API predicts the expected number of chimney fires in various municipalities (gemeente), neighborhoods (wijk), and blocks (buurt) in Twente, leveraging spatial and temporal prediction models. It provides efficient and accurate predictions based on spatial and temporal data.
+This API predicts the expected number of chimney fires in various municipalities (gemeente), neighborhoods (wijk), and blocks (buurt) in Twente, leveraging spatial and temporal prediction models. It provides efficient and accurate predictions based on spatial and temporal data. It is currently hosted on **chimneyfireproject.azurewebsites.net** domain.
 
 ### Prediction Model
 
@@ -103,9 +103,7 @@ The response includes a `prediction` array for the specified area and, optionall
 }
 ```
 
-## Hosting and Example Usage
-
-The API is currently hosted on chimneyfireproject.azurewebsites.net domain.
+## Example Usage
 
 - Request for all gemeente:
 
