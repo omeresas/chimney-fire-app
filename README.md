@@ -16,12 +16,13 @@ This API predicts the expected number of chimney fires in various municipalities
 - `GET /prediction/gemeente`
 - `GET /prediction/wijk`
 - `GET /prediction/buurt`
+- `GET /prediction/box`
 
 These endpoints return fire predictions for all areas of the specified type, as an array of the objects in the structure below. The optional query parameter `excludeGeoInfo` can be set to `true` to omit the `geoInfo` property in the response.
 
 #### Response
 
-The response is an array of objects, each containing the `prediction` array for that area (geemente, wijk or buurt) and, optionally, the `geoInfo` property. `areaId` is the CBS code of that area.
+The response is an array of objects, each containing the `prediction` array for that area (geemente, wijk, buurt or box) and, optionally, the `geoInfo` property. `areaId` is the CBS code of that area.
 
 ```json
 [
@@ -33,29 +34,41 @@ The response is an array of objects, each containing the `prediction` array for 
         "numberOfFires": "number"
       }
     ],
-     "geoInfo": {
-    "type": "Feature",
-    "crs": {
-      "type": "name",
+    "geoInfo": {
+      "type": "Feature",
+      "crs": {
+        "type": "name",
+        "properties": {
+          "name": "urn:ogc:def:crs:EPSG::28992"
+        }
+      },
       "properties": {
-        "name": "urn:ogc:def:crs:EPSG::28992"
+              "id": "number",
+              "fid": "number",
+              "gemeenteco": "string",
+              "gemeentena": "string",
+              "jaarstatco": "string",
+              "jaar": "number"
+          },,
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": "array[][][][]"
       }
-    },
-    "properties": {
-            "id": "number",
-            "fid": "number",
-            "gemeenteco": "string",
-            "gemeentena": "string",
-            "jaarstatco": "string",
-            "jaar": "number"
-        },,
-    "geometry": {
-      "type": "MultiPolygon",
-      "coordinates": "array[][][][]"
-    }
   }
   },
 ]
+```
+
+Note that **`geoInfo.properties`** for a box is different from that of a gemeente, wijk or buurt and is given below:
+
+```json
+{
+  "properties": {
+    "gid": "number",
+    "objectid": "number",
+    "c28992r500": "string"
+  }
+}
 ```
 
 ### Individual Area Prediction
@@ -63,8 +76,9 @@ The response is an array of objects, each containing the `prediction` array for 
 - `GET /prediction/gemeente/:gemeenteId`
 - `GET /prediction/wijk/:wijkId`
 - `GET /prediction/buurt/:buurtId`
+- `GET /prediction/box/:boxId`
 
-These endpoints return the fire prediction for a specific gemeente, wijk, or buurt, identified by their CBS codes. The optional query parameter `excludeGeoInfo` can be set to `true` to omit the `geoInfo` property in the response.
+These endpoints return the fire prediction for a specific gemeente, wijk, buurt or box, identified by their CBS codes. The optional query parameter `excludeGeoInfo` can be set to `true` to omit the `geoInfo` property in the response.
 
 #### Response
 
@@ -127,6 +141,18 @@ GET https://chimneyfireproject.azurewebsites.net/prediction/gemeente/GM0153
 
 ```plaintext
 GET https://chimneyfireproject.azurewebsites.net/prediction/wijk/WK015300?excludeGeoInfo=true
+```
+
+- Request for all boxes:
+
+```plaintext
+GET https://chimneyfireproject.azurewebsites.net/prediction/box
+```
+
+- Request for a specific box without GeoInfo:
+
+```plaintext
+GET https://chimneyfireproject.azurewebsites.net/prediction/box/53648?excludeGeoInfo=true
 ```
 
 ## Deploying to Azure App Service
