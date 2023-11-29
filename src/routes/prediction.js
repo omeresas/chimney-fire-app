@@ -72,6 +72,8 @@ router.get('/wijk', createBulkHandler('wijk'));
 
 router.get('/buurt', createBulkHandler('buurt'));
 
+router.get('/box', createBulkHandler('box'));
+
 router.get(
   '/gemeente/:gemeenteId',
   createAreaValidator('gemeente'),
@@ -88,6 +90,12 @@ router.get(
   '/buurt/:buurtId',
   createAreaValidator('buurt'),
   createIndividualHandler('buurt')
+);
+
+router.get(
+  '/box/:boxId',
+  createAreaValidator('box'),
+  createIndividualHandler('box')
 );
 
 export default router;
