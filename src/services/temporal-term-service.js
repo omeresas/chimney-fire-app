@@ -1,6 +1,7 @@
 import cron from 'node-cron';
 import fetch from 'node-fetch';
 import debugLib from 'debug';
+import { setTemporalTerms } from './temporal-terms-store.js';
 import { getDayOfYear } from '../utils.js';
 import { thetaValues } from '../data/index.js';
 
@@ -8,27 +9,33 @@ const debugModel = debugLib('chimney-fire-app:model-terms');
 const debugWeather = debugLib('chimney-fire-app:weather-forecast');
 
 export async function setTemporalTermsService() {
-  // Schedule the task to run at minute 0 of every hour
-  cron.schedule(
-    '0 * * * *',
-    async () => {
-      global.temporalTerms = await setTemporalTerms(thetaValues);
-    },
-    {
-      scheduled: true,
-      timezone: 'Europe/Amsterdam'
-    }
-  );
+  if (!(await checkWeatherAPI())) {
+    console.error(
+      'Failed to fetch initial weather data. ' +
+        'Check the API key and status of Meteoserver API. ' +
+        'Shutting down the app.'
+    );
+    process.exit(1);
+  }
 
-  // Fetch weather data at application start
-  global.temporalTerms = await setTemporalTerms(thetaValues);
+  setCronJob();
+  await updateTemporalTerms();
 }
 
-async function setTemporalTerms() {
-  const weatherData = await fetchWeatherData();
-  const daiyInputs = calculateDailyInputs(weatherData);
-  const temporalTerms = calculateTemporalTerms(thetaValues, daiyInputs);
-  return temporalTerms;
+async function checkWeatherAPI() {
+  const rawData = await fetchWeatherData();
+
+  if (!rawData) {
+    return false;
+  }
+
+  if (rawData.api_key_invalid) {
+    // Specific check for invalid API key
+    console.error('Invalid API Key:', rawData.api_key_invalid);
+    return false;
+  }
+
+  return true;
 }
 
 async function fetchWeatherData() {
@@ -37,22 +44,66 @@ async function fetchWeatherData() {
 
   try {
     const response = await fetch(url);
-    const data = await response.json();
 
-    const weatherForecast = data.data.map((day) => ({
-      date: day.dag,
-      avg_temp: day.avg_temp,
-      windkmh: day.windkmh
-    }));
+    if (response.status !== 200) {
+      console.error(
+        `Failed to fetch weather data. Status Code: ${response.status}`
+      );
+      return null;
+    }
 
-    debugWeather('New weather data is fetched:');
-    debugWeather(weatherForecast);
-
-    return weatherForecast;
+    return response.json();
   } catch (error) {
-    console.error('Error fetching weather data:', error);
+    console.error(
+      'Network error or problem making the request to Meteoserver API:',
+      error
+    );
     return null;
   }
+}
+
+function setCronJob() {
+  // Schedule the task to run at minute 0 of every hour
+  cron.schedule(
+    '0 * * * *',
+    async () => {
+      const success = await updateTemporalTerms();
+      if (!success) {
+        console.error('Scheduled update of temporal terms was unsuccessful.');
+      }
+    },
+    {
+      scheduled: true,
+      timezone: 'Europe/Amsterdam'
+    }
+  );
+}
+
+async function updateTemporalTerms() {
+  const rawData = await fetchWeatherData();
+
+  if (rawData === null) {
+    return false; // Return false to indicate no update was made
+  }
+
+  const weatherData = processWeatherData(rawData);
+  const dailyInputs = calculateDailyInputs(weatherData);
+  const temporalTerms = calculateTemporalTerms(thetaValues, dailyInputs);
+  setTemporalTerms(temporalTerms, new Date());
+  return true; // Return true to indicate successful update
+}
+
+function processWeatherData(rawData) {
+  const weatherForecast = rawData.data.map((day) => ({
+    date: day.dag,
+    avg_temp: day.avg_temp,
+    windkmh: day.windkmh
+  }));
+
+  debugWeather('Processed weather data:');
+  debugWeather(weatherForecast);
+
+  return weatherForecast;
 }
 
 function calculateDailyInputs(weatherData) {

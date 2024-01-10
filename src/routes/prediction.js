@@ -1,101 +1,29 @@
 import express from 'express';
-import createError from 'http-errors';
-import createAreaValidator from '../middlewares/validate-area.js';
+import validateArea from '../middlewares/validate-area.js';
 import { predictFires } from '../services/prediction-service.js';
-import { areaGeometry, areaIds } from '../data/index.js';
+import { getLastFetchTimestamp } from '../services/temporal-terms-store.js';
+import { areaIds } from '../data/index.js';
 
 const router = express.Router();
 
-function createIndividualHandler(areaType) {
-  return async (req, res, next) => {
-    const areaId = req.params[`${areaType}Id`];
-    const includeGeoInfo = req.query.excludeGeoInfo !== 'true';
-    let output;
+router.get('/:areaType/:areaId?', validateArea, (req, res) => {
+  const areaId = req.params.areaId;
+  const areaType = req.params.areaType;
+  const requestedAreaIds = areaId ? [areaId] : Array.from(areaIds[areaType]);
 
-    try {
-      output = await createOutputFor(areaId, includeGeoInfo);
-    } catch (error) {
-      console.error(`An error occurred: ${error.message}`);
-      return next(new createError.InternalServerError(error.message));
-    }
+  const includeGeoInfo = req.query.excludeGeoInfo !== 'true';
+  const predictions = requestedAreaIds.map((id) =>
+    predictFires(id, includeGeoInfo)
+  );
 
-    return res.send(output);
+  const lastFetchTimestamp = getLastFetchTimestamp();
+
+  const response = {
+    lastWeatherDataFetchTimestamp: lastFetchTimestamp,
+    data: areaId ? predictions[0] : predictions
   };
-}
 
-function createBulkHandler(areaType) {
-  return async (req, res, next) => {
-    const includeGeoInfo = req.query.excludeGeoInfo !== 'true';
-    let output;
-    const outputArr = [];
-
-    try {
-      for (const areaId of areaIds[areaType]) {
-        output = await createOutputFor(areaId, includeGeoInfo);
-        outputArr.push(output);
-      }
-    } catch (error) {
-      console.error(`An error occurred: ${error.message}`);
-      return next(new createError.InternalServerError(error.message));
-    }
-
-    return res.send(outputArr);
-  };
-}
-
-async function createOutputFor(areaId, includeGeoInfo) {
-  const predictionArr = await predictFires(areaId);
-
-  const geoInfo = includeGeoInfo
-    ? {
-        type: 'Feature',
-        crs: {
-          type: 'name',
-          properties: {
-            name: 'urn:ogc:def:crs:EPSG::28992'
-          }
-        },
-        ...areaGeometry[areaId]
-      }
-    : null;
-
-  return {
-    areaId,
-    prediction: predictionArr,
-    ...(includeGeoInfo && { geoInfo })
-  };
-}
-
-router.get('/gemeente', createBulkHandler('gemeente'));
-
-router.get('/wijk', createBulkHandler('wijk'));
-
-router.get('/buurt', createBulkHandler('buurt'));
-
-router.get('/box', createBulkHandler('box'));
-
-router.get(
-  '/gemeente/:gemeenteId',
-  createAreaValidator('gemeente'),
-  createIndividualHandler('gemeente')
-);
-
-router.get(
-  '/wijk/:wijkId',
-  createAreaValidator('wijk'),
-  createIndividualHandler('wijk')
-);
-
-router.get(
-  '/buurt/:buurtId',
-  createAreaValidator('buurt'),
-  createIndividualHandler('buurt')
-);
-
-router.get(
-  '/box/:boxId',
-  createAreaValidator('box'),
-  createIndividualHandler('box')
-);
+  return res.send(response);
+});
 
 export default router;
