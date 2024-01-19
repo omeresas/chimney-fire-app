@@ -5,7 +5,13 @@
   "type": "module",
   "scripts": {
     "start": "NODE_ENV=production node ./bin/www",
-    "dev": "DEBUG=chimney-fire-app:* NODE_ENV=development nodemon ./bin/www"
+    "dev": "DEBUG=chimney-fire-app:* NODE_ENV=development nodemon ./bin/www",
+    "debug-pred-server": "DEBUG=chimney-fire-app:prediction,chimney-fire-app:server NODE_ENV=development nodemon ./bin/www",
+    "debug-temp-pred-server": "DEBUG=chimney-fire-app:temp-state-today,chimney-fire-app:prediction,chimney-fire-app:server NODE_ENV=development nodemon ./bin/www",
+    "debug-cov": "DEBUG=chimney-fire-app:covariates NODE_ENV=development nodemon ./bin/www",
+    "debug-std-dev": "DEBUG=chimney-fire-app:std-dev NODE_ENV=development nodemon ./bin/www",
+    "debug-scaling": "DEBUG=chimney-fire-app:scaling-factors NODE_ENV=development nodemon ./bin/www",
+    "debug-temp": "DEBUG=chimney-fire-app:temp-state-today NODE_ENV=development nodemon ./bin/www"
   },
   "dependencies": {
     "debug": "^4.3.4",

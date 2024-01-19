@@ -1,16 +1,17 @@
 import debugLib from 'debug';
 import { readSpatialTerms } from './spatial-term-service.js';
-import { getTemporalTerms } from './temporal-terms-store.js';
+import { getTemporalState } from './temporal-state-store.js';
 import { areaGeometry } from '../data/index.js';
 
-const debug = debugLib('chimney-fire-app:model-terms');
+const debugPred = debugLib('chimney-fire-app:prediction');
 
 export function predictFires(areaId, includeGeoInfo) {
   const spatialTerms = readSpatialTerms(areaId);
-  const temporalTerms = getTemporalTerms();
+  const { temporalTerms, scalingFactors } = getTemporalState();
   const predictedFiresArr = multiplyTermsForMultipleDays(
     spatialTerms,
-    temporalTerms
+    temporalTerms,
+    scalingFactors
   );
 
   const geoInfo = includeGeoInfo
@@ -33,25 +34,47 @@ export function predictFires(areaId, includeGeoInfo) {
   };
 }
 
-function multiplyTermsForMultipleDays(spatialTermsArr, temporalTermsArr) {
-  return temporalTermsArr.map((temporalTermsSingleDay) => {
-    return multiplyTermsForASingleDay(spatialTermsArr, temporalTermsSingleDay);
+function multiplyTermsForMultipleDays(
+  spatialTermsArr,
+  temporalTermsArr,
+  scalingFactorsArr
+) {
+  return temporalTermsArr.map((temporalTermsSingleDay, index) => {
+    return multiplyTermsForASingleDay(
+      spatialTermsArr,
+      temporalTermsSingleDay,
+      scalingFactorsArr[index]
+    );
   });
 }
 
-function multiplyTermsForASingleDay(spatialTermsArr, temporalTerms) {
-  const expectedFires = spatialTermsArr.reduce(
-    (acc, spatialTerm, index) => acc + spatialTerm * temporalTerms.terms[index],
-    0
-  );
+function multiplyTermsForASingleDay(
+  spatialTermsArr,
+  temporalTerms,
+  scalingFactors
+) {
+  let numberOfFires = 0;
+  let lowerBoundOfFires = 0;
+  let upperBoundOfFires = 0;
+
+  Object.keys(temporalTerms).forEach((key, index) => {
+    if (key.startsWith('houseType')) {
+      const contribution = spatialTermsArr[index - 1] * temporalTerms[key];
+      numberOfFires += contribution;
+      lowerBoundOfFires += contribution * scalingFactors[key].lower;
+      upperBoundOfFires += contribution * scalingFactors[key].upper;
+    }
+  });
 
   const prediction = {
     date: temporalTerms.date,
-    numberOfFires: expectedFires.toFixed(6)
+    numberOfFires: numberOfFires.toFixed(6),
+    lowerBoundOfFires: lowerBoundOfFires.toFixed(6),
+    upperBoundOfFires: upperBoundOfFires.toFixed(6)
   };
 
-  debug('Prediction for one day:');
-  debug(prediction);
+  debugPred('Prediction for one day:');
+  debugPred(prediction);
 
   return prediction;
 }

@@ -32,38 +32,43 @@ These endpoints return fire predictions for all areas of the specified type, as 
 The response is an array of objects, each containing the `prediction` array for that area (geemente, wijk, buurt or box) and, optionally, the `geoInfo` property. `areaId` is the CBS code of that area.
 
 ```json
-[
-  {
-    "areaId": "string",
-    "prediction": [
-      {
-        "date": "string",
-        "numberOfFires": "number"
-      }
-    ],
-    "geoInfo": {
-      "type": "Feature",
-      "crs": {
-        "type": "name",
+{
+  "lastWeatherDataFetchTimestampUTC": "string",
+  "data": [
+    {
+      "areaId": "string",
+      "prediction": [
+        {
+          "date": "string",
+          "numberOfFires": "string",
+          "lowerBoundOfFires": "string",
+          "upperBoundOfFires": "string"
+        },
+      ],
+      "geoInfo": {
+        "type": "Feature",
+        "crs": {
+          "type": "name",
+          "properties": {
+            "name": "urn:ogc:def:crs:EPSG::28992"
+          }
+        },
         "properties": {
-          "name": "urn:ogc:def:crs:EPSG::28992"
+                "id": "number",
+                "fid": "number",
+                "gemeenteco": "string",
+                "gemeentena": "string",
+                "jaarstatco": "string",
+                "jaar": "number"
+            },,
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": "array[][][][]"
         }
-      },
-      "properties": {
-              "id": "number",
-              "fid": "number",
-              "gemeenteco": "string",
-              "gemeentena": "string",
-              "jaarstatco": "string",
-              "jaar": "number"
-          },,
-      "geometry": {
-        "type": "MultiPolygon",
-        "coordinates": "array[][][][]"
       }
-  }
-  },
-]
+    }
+  ]
+}
 ```
 
 Note that **`geoInfo.properties`** for a box is different from that of a gemeente, wijk or buurt and is given below:
@@ -93,32 +98,37 @@ The response includes a `prediction` array for the specified area and, optionall
 
 ```json
 {
-  "areaId": "string",
-  "prediction": [
-    {
-      "date": "string",
-      "numberOfFires": "number"
-    }
-  ],
-  "geoInfo": {
-    "type": "Feature",
-    "crs": {
-      "type": "name",
+  "lastWeatherDataFetchTimestampUTC": "string",
+  "data": {
+    "areaId": "string",
+    "prediction": [
+      {
+        "date": "string",
+        "numberOfFires": "string",
+        "lowerBoundOfFires": "string",
+        "upperBoundOfFires": "string"
+      },
+    ],
+    "geoInfo": {
+      "type": "Feature",
+      "crs": {
+        "type": "name",
+        "properties": {
+          "name": "urn:ogc:def:crs:EPSG::28992"
+        }
+      },
       "properties": {
-        "name": "urn:ogc:def:crs:EPSG::28992"
+              "id": "number",
+              "fid": "number",
+              "gemeenteco": "string",
+              "gemeentena": "string",
+              "jaarstatco": "string",
+              "jaar": "number"
+          },,
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": "array[][][][]"
       }
-    },
-    "properties": {
-            "id": "number",
-            "fid": "number",
-            "gemeenteco": "string",
-            "gemeentena": "string",
-            "jaarstatco": "string",
-            "jaar": "number"
-        },,
-    "geometry": {
-      "type": "MultiPolygon",
-      "coordinates": "array[][][][]"
     }
   }
 }

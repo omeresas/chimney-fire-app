@@ -1,7 +1,7 @@
 import express from 'express';
 import validateArea from '../middlewares/validate-area.js';
 import { predictFires } from '../services/prediction-service.js';
-import { getLastFetchTimestamp } from '../services/temporal-terms-store.js';
+import { getLastFetchTimestamp } from '../services/temporal-state-store.js';
 import { areaIds } from '../data/index.js';
 
 const router = express.Router();
@@ -19,7 +19,7 @@ router.get('/:areaType/:areaId?', validateArea, (req, res) => {
   const lastFetchTimestamp = getLastFetchTimestamp();
 
   const response = {
-    lastWeatherDataFetchTimestamp: lastFetchTimestamp,
+    lastWeatherDataFetchTimestampUTC: lastFetchTimestamp,
     data: areaId ? predictions[0] : predictions
   };
 

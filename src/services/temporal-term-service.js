@@ -1,12 +1,11 @@
 import cron from 'node-cron';
 import fetch from 'node-fetch';
 import debugLib from 'debug';
-import { setTemporalTerms } from './temporal-terms-store.js';
-import { getDayOfYear } from '../utils.js';
-import { thetaValues } from '../data/index.js';
+import { setTemporalState } from './temporal-state-store.js';
+import { getDayOfYear } from '../lib/utils.js';
+import { THETA, mockWeatherData } from '../data/index.js';
 
-const debugModel = debugLib('chimney-fire-app:model-terms');
-const debugWeather = debugLib('chimney-fire-app:weather-forecast');
+const debugWeather = debugLib('chimney-fire-app:weather');
 
 export async function setTemporalTermsService() {
   if (!(await checkWeatherAPI())) {
@@ -29,6 +28,13 @@ async function checkWeatherAPI() {
     return false;
   }
 
+  if (rawData.no_license) {
+    console.error(
+      `Failed to fetch weather data due to "No license" error during API checking process.`
+    );
+    return false;
+  }
+
   if (rawData.api_key_invalid) {
     // Specific check for invalid API key
     console.error('Invalid API Key:', rawData.api_key_invalid);
@@ -38,34 +44,10 @@ async function checkWeatherAPI() {
   return true;
 }
 
-async function fetchWeatherData() {
-  const apiKey = process.env.METEOSERVER_API_KEY;
-  const url = `https://data.meteoserver.nl/api/dagverwachting.php?locatie=Lonneker&key=${apiKey}`;
-
-  try {
-    const response = await fetch(url);
-
-    if (response.status !== 200) {
-      console.error(
-        `Failed to fetch weather data. Status Code: ${response.status}`
-      );
-      return null;
-    }
-
-    return response.json();
-  } catch (error) {
-    console.error(
-      'Network error or problem making the request to Meteoserver API:',
-      error
-    );
-    return null;
-  }
-}
-
 function setCronJob() {
-  // Schedule the task to run at minute 0 of every hour
+  // Schedule the task to run at 0:35, 7:35, 12:35, and 18:35 every day
   cron.schedule(
-    '0 * * * *',
+    '35 0,7,12,18 * * *',
     async () => {
       const success = await updateTemporalTerms();
       if (!success) {
@@ -88,9 +70,48 @@ async function updateTemporalTerms() {
 
   const weatherData = processWeatherData(rawData);
   const dailyInputs = calculateDailyInputs(weatherData);
-  const temporalTerms = calculateTemporalTerms(thetaValues, dailyInputs);
-  setTemporalTerms(temporalTerms, new Date());
+  const covariates = calculateCovariates(dailyInputs);
+  const temporalTerms = calculateTemporalTerms(THETA, covariates);
+  setTemporalState(covariates, temporalTerms, new Date());
   return true; // Return true to indicate successful update
+}
+
+async function fetchWeatherData() {
+  const useMockData = process.env.USE_MOCK_WEATHER_DATA;
+
+  if (useMockData === 'true') {
+    console.info('Mock Weather Data is used.');
+    return mockWeatherData; // Return mock data if the flag is set
+  }
+
+  const apiKey = process.env.METEOSERVER_API_KEY;
+  const url = `https://data.meteoserver.nl/api/dagverwachting.php?locatie=Lonneker&key=${apiKey}`;
+
+  try {
+    const response = await fetch(url);
+
+    if (response.status !== 200) {
+      console.error(
+        `Failed to fetch weather data. Status Code: ${response.status}`
+      );
+      return null;
+    }
+
+    const responseData = await response.json();
+
+    if (responseData.no_license) {
+      console.error(`Failed to fetch weather data due to "No license" error.`);
+      return null;
+    }
+
+    return responseData;
+  } catch (error) {
+    console.error(
+      'Network error or problem making the request to Meteoserver API:',
+      error
+    );
+    return null;
+  }
 }
 
 function processWeatherData(rawData) {
@@ -127,36 +148,39 @@ function calculateDailyInputs(weatherData) {
   });
 }
 
-function calculateTemporalTerms(thetaValues, dailyInputs) {
-  const keys = Object.keys(thetaValues);
-
-  debugModel('Theta values of temporal terms calculation:');
-  debugModel(thetaValues);
-
-  const multipleDays = dailyInputs.map((eachDay) => {
+function calculateTemporalTerms(theta, covariates) {
+  const multipleDays = covariates.map((eachDay) => {
     const oneDay = {
       date: eachDay.date,
-      terms: []
+      houseType1: Math.exp(
+        theta.houseType1.reduce(
+          (acc, thetaValue, index) =>
+            acc + thetaValue * eachDay.houseType1[index],
+          0
+        )
+      ),
+      houseType2: Math.exp(
+        theta.houseType2.reduce(
+          (acc, thetaValue, index) =>
+            acc + thetaValue * eachDay.houseType2[index],
+          0
+        )
+      ),
+      houseType3: Math.exp(
+        theta.houseType3.reduce(
+          (acc, thetaValue, index) =>
+            acc + thetaValue * eachDay.houseType3[index],
+          0
+        )
+      ),
+      houseType4: Math.exp(
+        theta.houseType4.reduce(
+          (acc, thetaValue, index) =>
+            acc + thetaValue * eachDay.houseType4[index],
+          0
+        )
+      )
     };
-
-    for (const key of keys) {
-      const params = {
-        theta: thetaValues[key],
-        windSpeed: eachDay.windSpeed,
-        windChill: eachDay.windChill,
-        piOver365TimesDayIndex: eachDay.piOver365TimesDayIndex
-      };
-
-      if (typeof houseTypeFunctions[key] === 'function') {
-        // insertion should start with houseType1 and goes like this
-        oneDay.terms.push(houseTypeFunctions[key](params));
-      } else {
-        console.warn(`No function found for key: ${key}`);
-      }
-    }
-
-    debugModel('Temporal terms for one day:');
-    debugModel(oneDay);
 
     return oneDay;
   });
@@ -164,81 +188,81 @@ function calculateTemporalTerms(thetaValues, dailyInputs) {
   return multipleDays;
 }
 
-const houseTypeFunctions = {
-  houseType1: temporalTerm_houseType1,
-  houseType2: temporalTerm_houseType2,
-  houseType3: temporalTerm_houseType3,
-  houseType4: temporalTerm_houseType4
-};
-
-function temporalTerm_houseType1({ theta, windChill, piOver365TimesDayIndex }) {
-  const result = Math.exp(
-    theta[0] +
-      theta[1] * Math.cos(2 * piOver365TimesDayIndex) +
-      theta[2] * Math.sin(2 * piOver365TimesDayIndex) +
-      theta[3] * Math.cos(4 * piOver365TimesDayIndex) +
-      theta[4] * Math.sin(4 * piOver365TimesDayIndex) +
-      theta[5] * Math.cos(6 * piOver365TimesDayIndex) +
-      theta[6] * Math.sin(6 * piOver365TimesDayIndex) +
-      theta[7] * Math.cos(8 * piOver365TimesDayIndex) +
-      theta[8] * Math.sin(8 * piOver365TimesDayIndex) +
-      theta[9] * windChill +
-      theta[10] * windChill ** 2
-  );
-  return result;
+function calculateCovariates(dailyInputs) {
+  return dailyInputs.map((eachDay) => {
+    return {
+      date: eachDay.date,
+      houseType1: covariatesHouseType1(eachDay),
+      houseType2: covariatesHouseType2(eachDay),
+      houseType3: covariatesHouseType3(eachDay),
+      houseType4: covariatesHouseType4(eachDay)
+    };
+  });
 }
 
-function temporalTerm_houseType2({ theta, windChill, piOver365TimesDayIndex }) {
-  const result = Math.exp(
-    theta[0] +
-      theta[1] * Math.cos(2 * piOver365TimesDayIndex) +
-      theta[2] * Math.sin(2 * piOver365TimesDayIndex) +
-      theta[3] * Math.cos(4 * piOver365TimesDayIndex) +
-      theta[4] * Math.sin(4 * piOver365TimesDayIndex) +
-      theta[5] * Math.cos(6 * piOver365TimesDayIndex) +
-      theta[6] * Math.sin(6 * piOver365TimesDayIndex) +
-      theta[7] * windChill +
-      theta[8] * windChill ** 2 +
-      theta[9] * windChill ** 3 +
-      theta[10] * windChill ** 4
-  );
-  return result;
+function covariatesHouseType1({ windChill, piOver365TimesDayIndex }) {
+  return [
+    1, // for theta[0]
+    Math.cos(2 * piOver365TimesDayIndex),
+    Math.sin(2 * piOver365TimesDayIndex),
+    Math.cos(4 * piOver365TimesDayIndex),
+    Math.sin(4 * piOver365TimesDayIndex),
+    Math.cos(6 * piOver365TimesDayIndex),
+    Math.sin(6 * piOver365TimesDayIndex),
+    Math.cos(8 * piOver365TimesDayIndex),
+    Math.sin(8 * piOver365TimesDayIndex),
+    windChill,
+    windChill ** 2
+  ];
 }
 
-function temporalTerm_houseType3({ theta, windChill, piOver365TimesDayIndex }) {
-  const result = Math.exp(
-    theta[0] +
-      theta[1] * Math.cos(2 * piOver365TimesDayIndex) +
-      theta[2] * Math.sin(2 * piOver365TimesDayIndex) +
-      theta[3] * Math.cos(4 * piOver365TimesDayIndex) +
-      theta[4] * Math.sin(4 * piOver365TimesDayIndex) +
-      theta[5] * Math.cos(6 * piOver365TimesDayIndex) +
-      theta[6] * Math.sin(6 * piOver365TimesDayIndex) +
-      theta[7] * windChill
-  );
-  return result;
+function covariatesHouseType2({ windChill, piOver365TimesDayIndex }) {
+  return [
+    1, // for theta[0]
+    Math.cos(2 * piOver365TimesDayIndex),
+    Math.sin(2 * piOver365TimesDayIndex),
+    Math.cos(4 * piOver365TimesDayIndex),
+    Math.sin(4 * piOver365TimesDayIndex),
+    Math.cos(6 * piOver365TimesDayIndex),
+    Math.sin(6 * piOver365TimesDayIndex),
+    windChill,
+    windChill ** 2,
+    windChill ** 3,
+    windChill ** 4
+  ];
 }
 
-function temporalTerm_houseType4({
-  theta,
+function covariatesHouseType3({ windChill, piOver365TimesDayIndex }) {
+  return [
+    1, // for theta[0]
+    Math.cos(2 * piOver365TimesDayIndex),
+    Math.sin(2 * piOver365TimesDayIndex),
+    Math.cos(4 * piOver365TimesDayIndex),
+    Math.sin(4 * piOver365TimesDayIndex),
+    Math.cos(6 * piOver365TimesDayIndex),
+    Math.sin(6 * piOver365TimesDayIndex),
+    windChill
+  ];
+}
+
+function covariatesHouseType4({
   windChill,
   windSpeed,
   piOver365TimesDayIndex
 }) {
-  const result = Math.exp(
-    theta[0] +
-      theta[1] * Math.cos(2 * piOver365TimesDayIndex) +
-      theta[2] * Math.sin(2 * piOver365TimesDayIndex) +
-      theta[3] * Math.cos(4 * piOver365TimesDayIndex) +
-      theta[4] * Math.sin(4 * piOver365TimesDayIndex) +
-      theta[5] * Math.cos(6 * piOver365TimesDayIndex) +
-      theta[6] * Math.sin(6 * piOver365TimesDayIndex) +
-      theta[7] * Math.cos(8 * piOver365TimesDayIndex) +
-      theta[8] * Math.sin(8 * piOver365TimesDayIndex) +
-      theta[9] * windChill +
-      theta[10] * windChill ** 2 +
-      theta[11] * windChill ** 3 +
-      theta[12] * windChill * windSpeed
-  );
-  return result;
+  return [
+    1, // for theta[0]
+    Math.cos(2 * piOver365TimesDayIndex),
+    Math.sin(2 * piOver365TimesDayIndex),
+    Math.cos(4 * piOver365TimesDayIndex),
+    Math.sin(4 * piOver365TimesDayIndex),
+    Math.cos(6 * piOver365TimesDayIndex),
+    Math.sin(6 * piOver365TimesDayIndex),
+    Math.cos(8 * piOver365TimesDayIndex),
+    Math.sin(8 * piOver365TimesDayIndex),
+    windChill,
+    windChill ** 2,
+    windChill ** 3,
+    windChill * windSpeed
+  ];
 }
