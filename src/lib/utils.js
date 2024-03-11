@@ -1,8 +1,4 @@
 import { readFile } from 'fs/promises';
-import { exec } from 'child_process';
-import debugLib from 'debug';
-
-const debug = debugLib('chimney-fire-app:R-script');
 
 export async function readJson(path) {
   try {
@@ -11,19 +7,6 @@ export async function readJson(path) {
   } catch (err) {
     console.error(`An error occurred while reading the file ${path}:`, err);
   }
-}
-
-export function executeRScript(scriptPath, args) {
-  return new Promise((resolve, reject) => {
-    debug(`Executing R script: Rscript ${scriptPath} ${args}`);
-    exec(`Rscript ${scriptPath} ${args}`, function (error, stdout) {
-      if (error) {
-        console.error(`Error executing R script: ${error}`);
-        return reject(new Error('Internal Server Error'));
-      }
-      resolve(stdout);
-    });
-  });
 }
 
 export function getDayOfYear(dateStr) {
