@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import fetch from 'node-fetch';
+import axios from 'axios';
 import debugLib from 'debug';
 import { setTemporalState } from './temporal-state-store.js';
 import { getDayOfYear } from '../lib/utils.js';
@@ -88,7 +88,7 @@ async function fetchWeatherData() {
   const url = `https://data.meteoserver.nl/api/dagverwachting.php?locatie=Lonneker&key=${apiKey}`;
 
   try {
-    const response = await fetch(url);
+    const response = await axios.get(url);
 
     if (response.status !== 200) {
       console.error(
@@ -97,14 +97,12 @@ async function fetchWeatherData() {
       return null;
     }
 
-    const responseData = await response.json();
-
-    if (responseData.no_license) {
+    if (response.data.no_license) {
       console.error(`Failed to fetch weather data due to "No license" error.`);
       return null;
     }
 
-    return responseData;
+    return response.data;
   } catch (error) {
     console.error(
       'Network error or problem making the request to Meteoserver API:',
