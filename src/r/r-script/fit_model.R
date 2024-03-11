@@ -16,7 +16,6 @@ boxes <- st_read("r/r-data/shapefiles/boxes/boxes.shp", quiet = TRUE)
 
 # Read Excel files into R and store them as dataframes
 BAG <- read_excel("r/r-data/excel/kro.xlsx", col_names = TRUE)
-Areas <- read_excel("r/r-data/excel/areaid.xlsx", col_names = TRUE)
 WindChill <- read_excel("r/r-data/excel/windchill.xlsx", col_names = TRUE)
 WindSpeed <- read_excel("r/r-data/excel/windspeed.xlsx", col_names = TRUE)
 Incidents <- read_excel("r/r-data/excel/incident.xlsx", col_names = TRUE)

@@ -101,19 +101,19 @@ calculate_house_count <- function(raster_objects) {
     all_results[[wijk]] <- unlist(houses)
   }
 
-  # # Iterate over Buurten
-  # for (buurt in unique(buurten$buurtcode)) {
-  #   area_polygon <- get_area_polygon(buurt)
-  #   houses <- calculate_houses_per_area(area_polygon, raster_objects)
-  #   all_results[[buurt]] <- unlist(houses)
-  # }
+  # Iterate over Buurten
+  for (buurt in unique(buurten$buurtcode)) {
+    area_polygon <- get_area_polygon(buurt)
+    houses <- calculate_houses_per_area(area_polygon, raster_objects)
+    all_results[[buurt]] <- unlist(houses)
+  }
 
-  # # Iterate over Boxes
-  # for (box in unique(boxes$objectid)) {
-  #   area_polygon <- get_area_polygon(box)
-  #   houses <- calculate_houses_per_area(area_polygon, raster_objects)
-  #   all_results[[as.character(box)]] <- unlist(houses)
-  # }
+  # Iterate over Boxes
+  for (box in unique(boxes$objectid)) {
+    area_polygon <- get_area_polygon(box)
+    houses <- calculate_houses_per_area(area_polygon, raster_objects)
+    all_results[[as.character(box)]] <- unlist(houses)
+  }
 
   return (all_results)
 }

@@ -67,6 +67,11 @@ export function handleFileUpload(req, res, next) {
       );
     }
 
+    // Check if no files were uploaded
+    if (!req.files || req.files.length === 0) {
+      return next(new createError.BadRequest('No files were uploaded.'));
+    }
+
     // Everything went fine
     res.json({
       message: `${req.files.length} File(s) uploaded successfully.`
@@ -76,14 +81,23 @@ export function handleFileUpload(req, res, next) {
 
 export async function updateHouseCount(req, res, next) {
   try {
+    console.log('House count updating process started.');
+    const startTime = Date.now();
+
     await executeRScript(
       `${process.env.MY_APP_PATH}/r/r-script/update_house_count.R`
     );
+
+    const endTime = Date.now();
+    const executionTime = (endTime - startTime) / 1000;
+    console.log(
+      `House count updating process completed successfully.\nExecution time: ${executionTime} seconds`
+    );
+
     res.json({
       message: 'House count updating process completed successfully.'
     });
   } catch (err) {
-    // Log the error and pass it to the next error handler
     console.error('Error during house count updating process:', err);
     next(
       new createError.InternalServerError(
@@ -98,7 +112,6 @@ export async function refitModel(req, res, next) {
     await executeRScript(`${process.env.MY_APP_PATH}/r/r-script/fit_model.R`);
     res.json({ message: 'Model refitting process completed successfully.' });
   } catch (err) {
-    // Log the error and pass it to the next error handler
     console.error('Error during model refitting process:', err);
     next(
       new createError.InternalServerError(

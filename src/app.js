@@ -5,12 +5,8 @@ import 'dotenv/config';
 import cors from 'cors';
 
 import predictionRouter from './routes/prediction.js';
+import modelRouter from './routes/model.js';
 import { setTemporalTermsService } from './services/temporal-term-service.js';
-import {
-  handleFileUpload,
-  updateHouseCount,
-  refitModel
-} from './services/model-refit-service.js';
 
 const app = express();
 app.use(cors());
@@ -20,12 +16,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 app.use('/prediction', predictionRouter);
-
-app.post('/model/upload', handleFileUpload);
-
-app.post('/model/update', updateHouseCount);
-
-app.post('/model/refit', refitModel);
+app.use('/model', modelRouter);
 
 app.get('/health', (req, res) => {
   res.status(200).send('Healthy');
