@@ -11,7 +11,8 @@
     "debug-cov": "DEBUG=chimney-fire-app:covariates NODE_ENV=development nodemon ./bin/www",
     "debug-std-dev": "DEBUG=chimney-fire-app:std-dev NODE_ENV=development nodemon ./bin/www",
     "debug-scaling": "DEBUG=chimney-fire-app:scaling-factors NODE_ENV=development nodemon ./bin/www",
-    "debug-temp": "DEBUG=chimney-fire-app:temp-state-today NODE_ENV=development nodemon ./bin/www"
+    "debug-temp": "DEBUG=chimney-fire-app:temp-state-today NODE_ENV=development nodemon ./bin/www",
+    "debug-model": "DEBUG=chimney-fire-app:model NODE_ENV=development nodemon ./bin/www"
   },
   "dependencies": {
     "axios": "^1.6.7",

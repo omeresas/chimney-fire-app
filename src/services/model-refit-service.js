@@ -1,25 +1,13 @@
 import createError from 'http-errors';
 import multer from 'multer';
 import fs from 'fs';
+import path from 'path';
 import { exec } from 'child_process';
 import debugLib from 'debug';
+import { getCurrentTimeInNetherlands } from '../lib/utils.js';
 
-const debug = debugLib('chimney-fire-app:R-script');
+const debug = debugLib('chimney-fire-app:model');
 
-function executeRScript(scriptPath, args) {
-  return new Promise((resolve, reject) => {
-    debug(`Executing R script: Rscript ${scriptPath} ${args}`);
-    exec(`Rscript ${scriptPath} ${args}`, function (error, stdout) {
-      if (error) {
-        console.error(`Error executing R script: ${error}`);
-        return reject(new Error('Internal Server Error'));
-      }
-      resolve(stdout);
-    });
-  });
-}
-
-// Multer configuration for Excel file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const dest = 'src/r/r-data/excel/';
@@ -61,18 +49,15 @@ export function handleFileUpload(req, res, next) {
         )
       );
     } else if (err) {
-      // Handle unknown errors
       return next(
         new createError.InternalServerError(`Upload error: ${err.message}`)
       );
     }
 
-    // Check if no files were uploaded
     if (!req.files || req.files.length === 0) {
       return next(new createError.BadRequest('No files were uploaded.'));
     }
 
-    // Everything went fine
     res.json({
       message: `${req.files.length} File(s) uploaded successfully.`
     });
@@ -81,26 +66,8 @@ export function handleFileUpload(req, res, next) {
 
 export async function updateHouseCount(req, res, next) {
   try {
-    console.log('House count updating process started.');
-    const startTime = Date.now();
-
     await executeRScript(
       `${process.env.MY_APP_PATH}/r/r-script/update_house_count.R`
-    );
-
-    const endTime = Date.now();
-    let executionTime;
-
-    const minutes = Math.floor((endTime - startTime) / 60000);
-    const seconds = Math.floor(((endTime - startTime) % 60000) / 1000);
-
-    if (minutes === 0) {
-      executionTime = `${seconds} second(s)`;
-    } else {
-      executionTime = `${minutes} minute(s) ${seconds} second(s)`;
-    }
-    console.log(
-      `House count updating process completed.\nExecution time: ${executionTime}.`
     );
 
     res.json({
@@ -119,7 +86,8 @@ export async function updateHouseCount(req, res, next) {
 export async function refitModel(req, res, next) {
   try {
     await executeRScript(`${process.env.MY_APP_PATH}/r/r-script/fit_model.R`);
-    res.json({ message: 'Model refitting process completed successfully.' });
+
+    res.json({ message: 'Model refitting process completed.' });
   } catch (err) {
     console.error('Error during model refitting process:', err);
     next(
@@ -128,4 +96,22 @@ export async function refitModel(req, res, next) {
       )
     );
   }
+}
+
+function executeRScript(scriptPath) {
+  return new Promise((resolve, reject) => {
+    const scriptName = path.basename(scriptPath);
+    debug(`Executing R script: ${scriptName}`);
+    debug(`Start time: ${getCurrentTimeInNetherlands()}`);
+    exec(`Rscript ${scriptPath}`, function (error, stdout) {
+      if (error) {
+        console.error(`Error executing R script: ${error}`);
+        return reject(
+          new createError.InternalServerError('R script execution failed.')
+        );
+      }
+      debug(`End time: ${getCurrentTimeInNetherlands()}`);
+      resolve(stdout);
+    });
+  });
 }

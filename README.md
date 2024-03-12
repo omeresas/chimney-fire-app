@@ -33,7 +33,7 @@ The response is an array of objects, each containing the `prediction` array for 
 
 ```json
 {
-  "lastWeatherDataFetchTimestampUTC": "string",
+  "lastWeatherFetchTimestamp": "string",
   "data": [
     {
       "areaId": "string",
@@ -98,7 +98,7 @@ The response includes a `prediction` array for the specified area and, optionall
 
 ```json
 {
-  "lastWeatherDataFetchTimestampUTC": "string",
+  "lastWeatherFetchTimestamp": "string",
   "data": {
     "areaId": "string",
     "prediction": [

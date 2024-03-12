@@ -2,7 +2,7 @@ import cron from 'node-cron';
 import axios from 'axios';
 import debugLib from 'debug';
 import { setTemporalState } from './temporal-state-store.js';
-import { getDayOfYear } from '../lib/utils.js';
+import { getDayOfYear, getCurrentTimeInNetherlands } from '../lib/utils.js';
 import { THETA, mockWeatherData } from '../data/index.js';
 
 const debugWeather = debugLib('chimney-fire-app:weather');
@@ -72,7 +72,7 @@ async function updateTemporalTerms() {
   const dailyInputs = calculateDailyInputs(weatherData);
   const covariates = calculateCovariates(dailyInputs);
   const temporalTerms = calculateTemporalTerms(THETA, covariates);
-  setTemporalState(covariates, temporalTerms, new Date());
+  setTemporalState(covariates, temporalTerms, getCurrentTimeInNetherlands());
   return true; // Return true to indicate successful update
 }
 

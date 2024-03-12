@@ -4,6 +4,9 @@ library(raster)
 library(sf)
 library(jsonlite)
 
+# Prevent the creation of PDF files
+pdf(NULL)
+
 # Set working directory
 setwd(Sys.getenv("MY_APP_PATH"))
 
@@ -202,7 +205,7 @@ write_json_combined <- function() {
     houseType4 = IHPP_model4$coefficients
   )
   
-  output_dir <- "r/r-data/output" # Define the output directory
+  output_dir <- "data" # Define the output directory
   
   # Check if the directory exists; if not, create it
   if(!dir.exists(output_dir)) {
@@ -215,7 +218,6 @@ write_json_combined <- function() {
   # Write the combined coefficients to a JSON file in the specified directory
   write_json(coefficients_combined, file_path)
 }
-
 
 # Call the write_json_combined function
 write_json_combined()

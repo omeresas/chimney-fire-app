@@ -19,3 +19,37 @@ export function getDayOfYear(dateStr) {
   const differenceInDays = differenceInMilliseconds / 1000 / 60 / 60 / 24;
   return differenceInDays;
 }
+
+export function getCurrentTimeInNetherlands() {
+  // Create a new Date object
+  const now = new Date();
+
+  // Define date format options
+  const dateFormatOptions = {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  };
+
+  // Define time format options
+  const timeFormatOptions = {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+    timeZone: 'Europe/Amsterdam'
+  };
+
+  // Format date and time
+  const formattedDate = new Intl.DateTimeFormat(
+    'nl-NL',
+    dateFormatOptions
+  ).format(now);
+  const formattedTime = new Intl.DateTimeFormat(
+    'nl-NL',
+    timeFormatOptions
+  ).format(now);
+
+  // Combine date and time into one string
+  return `${formattedDate} ${formattedTime}`;
+}
