@@ -7,7 +7,7 @@ import {
 
 const router = express.Router();
 
-router.post('/upload', handleFileUpload);
+router.put('/upload', handleFileUpload);
 router.post('/update', updateHouseCount);
 router.post('/refit', refitModel);
 
