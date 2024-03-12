@@ -12,6 +12,7 @@ source("r/r-script/utils.R")
 
 # Load the Twente municipal boundaries
 buurten <- st_read("r/r-data/shapefiles/buurten/buurten.shp", quiet = TRUE)
+boxes <- st_read("r/r-data/shapefiles/boxes/boxes.shp", quiet = TRUE)
 
 # Read Excel files into R and store them as dataframes
 BAG <- read_excel("r/r-data/excel/kro.xlsx", col_names = TRUE)
@@ -165,7 +166,7 @@ calculate_houses_per_area <- function(area_polygon, raster_objects) {
 }
 
 store_house_count_as_json <- function(all_results) {
-  output_dir <- "r/r-data/output" # Define the output directory
+  output_dir <- "data" # Define the output directory
   
   # Check if the directory exists; if not, create it
   if(!dir.exists(output_dir)) {

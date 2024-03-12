@@ -89,13 +89,22 @@ export async function updateHouseCount(req, res, next) {
     );
 
     const endTime = Date.now();
-    const executionTime = (endTime - startTime) / 1000;
+    let executionTime;
+
+    const minutes = Math.floor((endTime - startTime) / 60000);
+    const seconds = Math.floor(((endTime - startTime) % 60000) / 1000);
+
+    if (minutes === 0) {
+      executionTime = `${seconds} second(s)`;
+    } else {
+      executionTime = `${minutes} minute(s) ${seconds} second(s)`;
+    }
     console.log(
-      `House count updating process completed successfully.\nExecution time: ${executionTime} seconds`
+      `House count updating process completed.\nExecution time: ${executionTime}.`
     );
 
     res.json({
-      message: 'House count updating process completed successfully.'
+      message: 'House count updating process completed.'
     });
   } catch (err) {
     console.error('Error during house count updating process:', err);
