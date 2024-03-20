@@ -11,7 +11,7 @@ router.get('/:areaType/:areaId?', validateArea, (req, res) => {
   const areaType = req.params.areaType;
   const requestedAreaIds = areaId ? [areaId] : Array.from(areaIds[areaType]);
 
-  const includeGeoInfo = req.query.excludeGeoInfo !== 'true';
+  const includeGeoInfo = req.query.includeGeoInfo === 'true';
   const predictions = requestedAreaIds.map((id) =>
     predictFires(id, includeGeoInfo)
   );
