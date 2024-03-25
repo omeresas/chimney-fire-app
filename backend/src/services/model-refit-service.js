@@ -5,6 +5,7 @@ import path from 'path';
 import { exec } from 'child_process';
 import debugLib from 'debug';
 import { getCurrentTimeInNetherlands } from '../lib/utils.js';
+import { refreshHouseCountCache, refreshThetaCache } from '../data/index.js';
 
 const debug = debugLib('chimney-fire-app:model');
 
@@ -69,6 +70,7 @@ export async function updateHouseCount(req, res, next) {
     await executeRScript(
       `${process.env.MY_APP_PATH}/r/r-script/update_house_count.R`
     );
+    await refreshHouseCountCache();
 
     res.json({
       message: 'House count updating process completed.'
@@ -86,6 +88,7 @@ export async function updateHouseCount(req, res, next) {
 export async function refitModel(req, res, next) {
   try {
     await executeRScript(`${process.env.MY_APP_PATH}/r/r-script/fit_model.R`);
+    await refreshThetaCache();
 
     res.json({ message: 'Model refitting process completed.' });
   } catch (err) {
