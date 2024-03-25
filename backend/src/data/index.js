@@ -1,9 +1,28 @@
 import { fileURLToPath } from 'url';
 import { readJson } from '../lib/utils.js';
 
-export const THETA = await readJson(
-  fileURLToPath(new URL('THETA.json', import.meta.url))
-);
+let THETA_CACHE = null;
+let HOUSECOUNT_CACHE = null;
+
+export function getLatestTheta() {
+  return THETA_CACHE;
+}
+
+export async function refreshThetaCache() {
+  THETA_CACHE = await readJson(
+    fileURLToPath(new URL('THETA.json', import.meta.url))
+  );
+}
+
+export function getLatestHouseCount() {
+  return HOUSECOUNT_CACHE;
+}
+
+export async function refreshHouseCountCache() {
+  HOUSECOUNT_CACHE = await readJson(
+    fileURLToPath(new URL('houseCount.json', import.meta.url))
+  );
+}
 
 export const G_MATRIX = await readJson(
   fileURLToPath(new URL('G_MATRIX.json', import.meta.url))
@@ -11,10 +30,6 @@ export const G_MATRIX = await readJson(
 
 export const areaGeometry = await readJson(
   fileURLToPath(new URL('areaGeometry.json', import.meta.url))
-);
-
-export const houseCount = await readJson(
-  fileURLToPath(new URL('houseCount.json', import.meta.url))
 );
 
 export const mockWeatherData = await readJson(

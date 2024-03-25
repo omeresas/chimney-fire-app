@@ -3,7 +3,12 @@ import axios from 'axios';
 import debugLib from 'debug';
 import { setTemporalState } from './temporal-state-store.js';
 import { getDayOfYear, getCurrentTimeInNetherlands } from '../lib/utils.js';
-import { THETA, mockWeatherData } from '../data/index.js';
+import {
+  getLatestTheta,
+  refreshHouseCountCache,
+  refreshThetaCache,
+  mockWeatherData
+} from '../data/index.js';
 
 const debugWeather = debugLib('chimney-fire-app:weather');
 
@@ -18,6 +23,8 @@ export async function setTemporalTermsService() {
   }
 
   setCronJob();
+  await refreshHouseCountCache();
+  await refreshThetaCache();
   await updateTemporalTerms();
 }
 
@@ -71,7 +78,8 @@ async function updateTemporalTerms() {
   const weatherData = processWeatherData(rawData);
   const dailyInputs = calculateDailyInputs(weatherData);
   const covariates = calculateCovariates(dailyInputs);
-  const temporalTerms = calculateTemporalTerms(THETA, covariates);
+  const latestTheta = getLatestTheta();
+  const temporalTerms = calculateTemporalTerms(latestTheta, covariates);
   setTemporalState(covariates, temporalTerms, getCurrentTimeInNetherlands());
   return true; // Return true to indicate successful update
 }
