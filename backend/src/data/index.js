@@ -32,8 +32,4 @@ export const areaGeometry = await readJson(
   fileURLToPath(new URL('areaGeometry.json', import.meta.url))
 );
 
-export const mockWeatherData = await readJson(
-  fileURLToPath(new URL('mockWeatherData.json', import.meta.url))
-);
-
 export { default as areaIds } from './areaId.js';

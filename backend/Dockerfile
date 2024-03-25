@@ -37,9 +37,6 @@ COPY bin/ bin/
 # Set the environment variable
 ENV MY_APP_PATH=/app/src
 
-# TODO: Delete dev API key before Azure deployment
-ENV METEOSERVER_API_KEY=5f1f5916ec
-
 # Inform Docker that the container listens on 3000
 EXPOSE 3000
 

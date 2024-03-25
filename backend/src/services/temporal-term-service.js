@@ -6,8 +6,7 @@ import { getDayOfYear, getCurrentTimeInNetherlands } from '../lib/utils.js';
 import {
   getLatestTheta,
   refreshHouseCountCache,
-  refreshThetaCache,
-  mockWeatherData
+  refreshThetaCache
 } from '../data/index.js';
 
 const debugWeather = debugLib('chimney-fire-app:weather');
@@ -85,13 +84,6 @@ async function updateTemporalTerms() {
 }
 
 async function fetchWeatherData() {
-  const useMockData = process.env.USE_MOCK_WEATHER_DATA;
-
-  if (useMockData === 'true') {
-    console.info('Mock Weather Data is used.');
-    return mockWeatherData; // Return mock data if the flag is set
-  }
-
   const apiKey = process.env.METEOSERVER_API_KEY;
   const url = `https://data.meteoserver.nl/api/dagverwachting.php?locatie=Lonneker&key=${apiKey}`;
 
