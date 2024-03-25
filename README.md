@@ -275,5 +275,5 @@ When deploying the application to Azure App Service, there are specific settings
    - Still in the `Application settings` tab of your App Service's `Configuration` section, add another key-value pair for the Meteoserver API key:
      - **Name**: `METEOSERVER_API_KEY`
      - **Value**: `your_meteoserver_api_key`
-3. **`GET /health` Endpoint**:
+3. **Health Check Endpoint**:
    - The `/health` endpoint can be used by Azure to determine the health of the application. If the endpoint returns a status code of 200, the application is considered healthy.
