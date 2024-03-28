@@ -20,7 +20,7 @@ router.get('/:areaType/:areaId?', validateArea, (req, res) => {
 
   const response = {
     lastWeatherFetchTimestamp: lastFetchTimestamp,
-    data: areaId ? predictions[0] : predictions
+    predictions: areaId ? predictions[0] : predictions
   };
 
   return res.send(response);

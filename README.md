@@ -32,7 +32,11 @@ These endpoints return fire predictions for all areas of the specified type, as 
 The response consists of below keys:
 
 - **`lastWeatherFetchTimestamp`**: The timestamp of the last weather forecast fetch from Meteoserver API.
-- **`data`**: Array of objects, each containing the `prediction` array for that area (gemeente, wijk, buurt or box) and, optionally, the `geoInfo` property. `areaId` is the CBS code of that area.
+- **`predictions`**: Array of objects, each containing the `prediction` array for that area (gemeente, wijk, buurt or box) and, optionally, the `geoInfo` property. `areaId` is the CBS code of that area. The `prediction` array contains the following keys:
+  - **`date`**: The date of the prediction.
+  - **`numberOfFires`**: The expected number of fires.
+  - **`lowerBoundOfFires`**: The lower bound of the 95% confidence interval. In other words, the model is 95% confident that the actual number of fires will be greater than or equal to this value.
+  - **`upperBoundOfFires`**: The upper bound of the 95% confidence interval. In other words, the model is 95% confident that the actual number of fires will be less than or equal to this value.
 - **`geoInfo`**: GeoJSON geometry data for the area, if requested.
 
 An example response that includes the `geoInfo` property is given below:
@@ -40,7 +44,7 @@ An example response that includes the `geoInfo` property is given below:
 ```json
 {
   "lastWeatherFetchTimestamp": "string",
-  "data": [
+  "predictions": [
     {
       "areaId": "string",
       "prediction": [
@@ -103,7 +107,7 @@ The response includes a `prediction` array for the specified area and, optionall
 ```json
 {
   "lastWeatherFetchTimestamp": "string",
-  "data": {
+  "predictions": {
     "areaId": "string",
     "prediction": [
       {
@@ -172,6 +176,8 @@ GET https://chimneyfireproject.azurewebsites.net/prediction/box
 
 ## Structure of the Excel Files Used for Model Refitting
 
+**Example Excel Files**: Please refer to the [excel](./backend/src/r/r-data/excel/) directory for the existing Excel files used calculate the current model parameters.
+
 Before explaining how to update the prediction model, it is necessary to understand the structure of the data digested by the model. These are **the four Excel files** that are read by the application, therefore it is necessary to use **the same exact names with correct capitalization** for the Excel files, the columns in the Excel files and the possible values in the columns. The Excel files are as follows:
 
 1. **kro.xlsx**: Contains the building data. The necessary columns are:
@@ -236,7 +242,7 @@ The next step is to make a request to trigger the app to read the new building d
 
 - `POST /model/update`: With an empty request body.
 
-Depending on the computation power allocated to the the Azure app container, this process may take from 10 minutes to an even longer period. The successful response will be a JSON object with the following content:
+Depending on the computation power allocated to the the Azure app container, this process may take from 10 minutes to a couple of hours. The successful response will be a JSON object with the following content:
 
 ```json
 {
@@ -250,7 +256,7 @@ The final step is to make another request to trigger the app to read all the fou
 
 - `POST /model/refit`: With an empty request body.
 
-Depending on the computation power allocated to the the Azure app container, this process may take from 10 minutes to an even longer period. The successful response will be a JSON object with the following content:
+Depending on the computation power allocated to the the Azure app container, this process may take from 10 minutes to a couple of hours. The successful response will be a JSON object with the following content:
 
 ```json
 {
